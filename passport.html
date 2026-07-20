@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passport — Elizauria</title>
+<meta name="description" content="Get your official Elizaurian passport instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
+</head>
+<body>
+
+<div class="ribbon">Ministry of Documents · Passport Office</div>
+
+<header class="site">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <svg class="crest" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#12235c" stroke="#e0b94d" stroke-width="3"/><polygon points="50,18 59,42 85,42 64,58 72,84 50,68 28,84 36,58 15,42 41,42" fill="#e0b94d"/></svg>
+      <span class="brand-text"><strong>ELIZAURIA</strong><span>Sovereign Republic</span></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <nav class="main">
+      <a href="index.html">Home</a>
+      <a href="founders.html">Leaders</a>
+      <a href="citizenship.html">Citizenship</a>
+      <a href="passport.html" class="active">Passport</a>
+      <a href="tourism.html">Visit</a>
+      <a href="games.html">Games</a>
+      <a href="news.html">News</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding:3.8rem 1.25rem 3rem">
+  <div class="aurora"></div>
+  <h1>Elizaurian <span class="shine">Passport</span></h1>
+  <p class="sub">The document that started the nation. Issued instantly, valid in every dream.</p>
+</section>
+
+<main>
+
+  <section class="reveal">
+    <div class="form-card">
+      <form id="ppForm">
+        <div class="field">
+          <label>Passport photo (optional)</label>
+          <label class="uploader">
+            <img class="prev" id="prev" alt="preview">
+            <div id="uplText">📷 Tap to add your photo</div>
+            <input type="file" id="photo" accept="image/*">
+          </label>
+        </div>
+        <div class="row">
+          <div class="field"><label for="fname">Given Name</label><input id="fname" type="text" required></div>
+          <div class="field"><label for="lname">Surname</label><input id="lname" type="text" required></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="dob">Date of Birth</label><input id="dob" type="date"></div>
+          <div class="field"><label for="origin">Place of Origin</label><input id="origin" type="text" placeholder="City or country"></div>
+        </div>
+        <button type="submit" class="btn gold" style="width:100%;justify-content:center">🛂 Issue My Passport</button>
+      </form>
+
+      <div class="passport" id="passbook">
+        <div class="pp-head"><span>Sovereign Republic of Elizauria</span><span>Passport · Type P</span></div>
+        <div class="pp-body">
+          <div style="flex:0 0 auto;text-align:center">
+            <div class="pp-photo" id="pbPhoto">🙂</div>
+            <div style="font-size:.58rem;letter-spacing:.15em;color:#f3d078;margin-top:.4rem">HOLDER</div>
+          </div>
+          <div class="pp-grid">
+            <div><b>Surname</b><span id="pbLname">—</span></div>
+            <div><b>Given Name</b><span id="pbFname">—</span></div>
+            <div><b>Nationality</b><span>Elizaurian</span></div>
+            <div><b>Date of Birth</b><span id="pbDob">—</span></div>
+            <div><b>Place of Origin</b><span id="pbOrigin">—</span></div>
+            <div><b>Passport No.</b><span id="pbNum">—</span></div>
+            <div><b>Date of Issue</b><span id="pbIssued">—</span></div>
+            <div><b>Authority</b><span>Ministry of Documents</span></div>
+          </div>
+        </div>
+        <div class="mrz" id="pbMrz1"></div>
+        <div class="mrz" id="pbMrz2" style="border-top:none;padding-top:.2rem;margin-top:0"></div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem">
+          <button class="btn gold sm" onclick="window.print()">🖨️ Print / Save</button>
+          <a href="citizenship.html" class="btn ghost sm" style="color:#fff">Need an ID too? →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="section-head"><div class="kick">Passport Office</div><h2 class="section-title">Lost Your Passport?</h2><p class="section-lead">Retrieve it by name on the device you used. Officials can recover from anywhere.</p></div>
+    <div class="form-card" style="max-width:520px">
+      <form id="findForm">
+        <div class="field"><label for="findName">Your full name</label><input id="findName" type="text" placeholder="e.g. Eli Yanchevsky" required></div>
+        <button type="submit" class="btn navy" style="width:100%;justify-content:center">🔎 Retrieve My Passport</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="aurora"></div>
+  <div class="foot-inner">
+    <div><h4>Elizauria</h4><p style="font-size:.9rem;color:#9aa4c4">Founded 2026. "From a bedroom, a nation."</p></div>
+    <div><h4>Explore</h4><a href="founders.html">Leaders</a><a href="citizenship.html">Citizenship</a><a href="passport.html">Passport</a><a href="tourism.html">Visit</a><a href="games.html">Games</a><a href="news.html">News</a></div>
+  </div>
+  <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+var Passports={
+  key:'elz_passports',
+  all:function(){ try{return JSON.parse(localStorage.getItem(this.key))||[];}catch(e){return[];} },
+  add:function(p){ var a=this.all(); a.unshift(p); localStorage.setItem(this.key,JSON.stringify(a.slice(0,200))); }
+};
+var photoData=null;
+document.getElementById('photo').addEventListener('change',function(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas');
+      var s=Math.min(1,320/Math.max(img.width,img.height));
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      photoData=c.toDataURL('image/jpeg',0.8);
+      var p=document.getElementById('prev'); p.src=photoData; p.style.display='block';
+      document.getElementById('uplText').textContent='Photo added ✓ (tap to change)';
+    };
+    img.src=r.result;
+  };
+  r.readAsDataURL(f);
+});
+
+function mrz(s,len){ return s.toUpperCase().replace(/[^A-Z0-9<]/g,'<').padEnd(len,'<').slice(0,len); }
+function showPassport(rec){
+  document.getElementById('pbLname').textContent=(rec.lname||'—').toUpperCase();
+  document.getElementById('pbFname').textContent=(rec.fname||'—').toUpperCase();
+  document.getElementById('pbDob').textContent=rec.dob||'—';
+  document.getElementById('pbOrigin').textContent=rec.origin||'Earth';
+  document.getElementById('pbNum').textContent=rec.pnum;
+  document.getElementById('pbIssued').textContent=new Date(rec.at||Date.now()).toLocaleDateString();
+  document.getElementById('pbPhoto').innerHTML= rec.photo ? '<img src="'+rec.photo+'" alt="">' : '🙂';
+  document.getElementById('pbMrz1').textContent=mrz('P<ELZ'+(rec.lname||'')+'<<'+(rec.fname||''),36);
+  document.getElementById('pbMrz2').textContent=mrz(String(rec.pnum).replace(/-/g,'')+'<ELZ<'+(rec.dob||'').replace(/-/g,''),36);
+  var p=document.getElementById('passbook'); p.classList.add('show');
+  p.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+document.getElementById('ppForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var g=function(id){return document.getElementById(id).value.trim();};
+  var rec={ fname:g('fname'), lname:g('lname'), name:(g('fname')+' '+g('lname')).trim(),
+            dob:g('dob'), origin:g('origin')||'Earth',
+            pnum:'ELZ-P-'+Math.floor(100000+Math.random()*899999),
+            photo:photoData, at:Date.now() };
+  showPassport(rec);
+  try{ Passports.add(rec); }catch(err){ try{ rec.photo=null; Passports.add(rec); }catch(e2){} }
+  confetti(); toast('🛂 Passport issued. Safe travels, Elizaurian!');
+});
+
+document.getElementById('findForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var q=document.getElementById('findName').value.trim().toLowerCase();
+  var rec=Passports.all().find(function(c){ return (c.name||'').toLowerCase()===q; });
+  if(rec){ showPassport(rec); toast('🛂 Found your passport, '+rec.fname+'!'); return; }
+  loadPublicCitizens().then(function(pub){
+    var o=pub.find(function(c){ return (c.name||'').toLowerCase()===q || (c.fname||'').toLowerCase()===q; });
+    if(o && o.pnum){
+      if(!o.at && o.since) o.at=new Date(o.since).getTime();
+      showPassport(o); toast('👑 Official passport found: '+o.name);
+    }
+    else toast('No record found. Passports can only be retrieved on the device used to get them.');
+  });
+});
+</script>
+</body>
+</html>
