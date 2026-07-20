@@ -60,7 +60,8 @@
         <div class="row">
           <div class="field"><label for="region">Where are you from?</label><input id="region" type="text" placeholder="City or country"></div>
           <div class="field"><label for="role">National Role</label>
-            <select id="role"><option>Citizen</option><option>Explorer</option><option>Ambassador Abroad</option><option>Royal Historian</option><option>Guardian of the Gym</option><option>Friend of the National Dog</option></select>
+            <select id="role"><option>Citizen</option><option>Explorer</option><option>Ambassador Abroad</option><option>Royal Historian</option><option>Guardian of the Gym</option><option>Friend of the National Dog</option><option id="genOpt">⚔️ General of the Army (one in the world!)</option></select>
+            <p id="genStatus" style="font-size:.78rem;color:var(--muted);margin-top:.35rem"></p>
           </div>
         </div>
         <label class="oath"><input type="checkbox" id="oath" checked><span><strong>The Citizen's Oath:</strong> I swear to dream loudly and never let anyone tell me my ambitions are too big.</span></label>
@@ -147,13 +148,55 @@ document.getElementById('photo').addEventListener('change',function(e){
 
 function renderWall(){ renderCitizenWall('wall','wallCount'); }
 
+// ---- One-of-a-kind roles (shared worldwide claim record) ----
+var ROLES_URL='https://textdb.dev/api/data/elizauria-roles-2c8e5b1a-9d47-4f30-a6e2-71b3c4d8f9e0';
+var GENERAL='⚔️ General of the Army (one in the world!)';
+function fetchRoles(){
+  return fetch(ROLES_URL,{headers:{'accept':'application/json'},cache:'no-store'})
+    .then(function(r){return r.text();})
+    .then(function(t){ try{ var d=JSON.parse(t); return (d&&typeof d==='object'&&!Array.isArray(d))?d:{}; }catch(e){ return {}; } });
+}
+function refreshGeneralStatus(){
+  fetchRoles().then(function(roles){
+    var opt=document.getElementById('genOpt'), st=document.getElementById('genStatus');
+    if(roles.general){
+      opt.disabled=true; opt.textContent='⚔️ General of the Army — taken';
+      st.textContent='⚔️ General of the Army: held by '+roles.general.name+' since '+roles.general.date+'. Only one ever.';
+    } else {
+      st.textContent='⚔️ The rank of General of the Army is UNCLAIMED. First to take it keeps it forever.';
+    }
+  }).catch(function(){});
+}
+refreshGeneralStatus();
+
 document.getElementById('citForm').addEventListener('submit',function(e){
   e.preventDefault();
   if(!document.getElementById('oath').checked){ toast('Please take the Citizen\'s Oath ✋'); return; }
   var g=function(id){return document.getElementById(id).value.trim();};
   var fname=g('fname'), lname=g('lname');
-  var num='ELZ-'+Math.floor(100000+Math.random()*899999);
   var role=document.getElementById('role').value;
+
+  if(role===GENERAL){
+    var claimName=(fname+' '+lname).trim()||'Anonymous';
+    fetchRoles().then(function(roles){
+      if(roles.general){
+        toast('⚔️ Too late! '+roles.general.name+' is already General of the Army. Pick another role.');
+        refreshGeneralStatus();
+        return;
+      }
+      roles.general={name:claimName,date:new Date().toLocaleDateString()};
+      return fetch(ROLES_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(roles)})
+        .then(function(){ issueID('⚔️ General of the Army'); toast('⚔️ '+claimName+' is now the one and only General of the Army!'); refreshGeneralStatus(); });
+    }).catch(function(){ toast('⚠️ Could not verify the rank. Check your internet and try again.'); });
+    return;
+  }
+  issueID(role);
+});
+
+function issueID(role){
+  var g=function(id){return document.getElementById(id).value.trim();};
+  var fname=g('fname'), lname=g('lname');
+  var num='ELZ-'+Math.floor(100000+Math.random()*899999);
 
   // 1) Show the ID first (always works)
   document.getElementById('ppName').textContent=((fname+' '+lname).trim()||'CITIZEN').toUpperCase();
@@ -182,7 +225,7 @@ document.getElementById('citForm').addEventListener('submit',function(e){
   var p=document.getElementById('passport'); p.classList.add('show');
   confetti(); toast('🎉 Welcome, citizen of Elizauria!');
   p.scrollIntoView({behavior:'smooth',block:'center'});
-});
+}
 
 renderWall();
 
