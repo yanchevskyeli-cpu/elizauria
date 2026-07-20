@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visit — Elizauria</title>
+<meta name="description" content="The National Dog, the Royal Gym and the landmarks of Elizauria.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
+</head>
+<body>
+
+<div class="ribbon">Ministry of Culture · Visitors Welcome</div>
+
+<header class="site">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <svg class="crest" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#12235c" stroke="#e0b94d" stroke-width="3"/><polygon points="50,18 59,42 85,42 64,58 72,84 50,68 28,84 36,58 15,42 41,42" fill="#e0b94d"/></svg>
+      <span class="brand-text"><strong>ELIZAURIA</strong><span>Sovereign Republic</span></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <nav class="main">
+      <a href="index.html">Home</a>
+      <a href="founders.html">Leaders</a>
+      <a href="citizenship.html">Citizenship</a>
+      <a href="tourism.html" class="active">Visit</a>
+      <a href="games.html">Games</a>
+      <a href="news.html">News</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding:3.8rem 1.25rem 3rem">
+  <div class="aurora"></div>
+  <h1>Visit <span class="shine">Elizauria</span></h1>
+  <p class="sub">A small nation with an enormous imagination.</p>
+</section>
+
+<main>
+
+  <!-- NATIONAL DOG -->
+  <section id="dog" class="reveal">
+    <div class="section-head"><div class="kick">Living Landmark</div><h2 class="section-title">The National Dog</h2></div>
+    <div class="split">
+      <div class="photo" id="dogPhotoWrap" title="Tap to pet!"><img src="dog.jpg" alt="The National Dog of Elizauria"></div>
+      <div>
+        <span class="tag">Guardian of the Realm</span>
+        <p style="color:var(--muted);margin:.7rem 0 1rem">Official Guardian by royal decree. Patrols the capital couch, greets every visitor, always majestic. Tap the photo to pet!</p>
+        <p style="color:var(--navy);font-weight:700;margin-bottom:.8rem">Times petted: <span id="petCount" style="color:var(--gold-deep)">0</span></p>
+        <button class="btn gold" id="petBtn">🐾 Pet the Dog</button>
+        <button class="btn navy sm" id="treatBtn" style="margin-left:.5rem">🦴 Treat</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROYAL GYM -->
+  <section id="gym" class="reveal">
+    <div class="section-head"><div class="kick">Hall of Strength</div><h2 class="section-title">The Royal Gym</h2></div>
+    <div class="parchment" style="border-left:none;border-top:5px solid var(--gold)">
+      <div class="gym-stage">
+        <div class="bag" id="bag" title="Punch me!">🥊</div>
+        <div class="meter"><div id="strength"></div></div>
+        <div style="display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;text-align:center">
+          <div><div style="font-family:var(--serif);font-size:2rem;color:var(--navy)" id="punches">0</div><div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Punches</div></div>
+          <div><div style="font-family:var(--serif);font-size:2rem;color:var(--gold-deep)" id="combo">0</div><div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Combo</div></div>
+          <div><div style="font-family:var(--serif);font-size:2rem;color:var(--navy)" id="record">0</div><div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Record</div></div>
+        </div>
+        <p style="color:var(--muted);font-size:.9rem" id="rank">Rank: Recruit</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANDMARKS -->
+  <section id="desk" class="reveal">
+    <div class="section-head"><div class="kick">Attractions</div><h2 class="section-title">Landmarks</h2></div>
+    <div class="grid">
+      <div class="card reveal"><span class="ico">📜</span><h3>The Founding Desk</h3><p>Where the first passport was drawn. Pilgrims leave a pen.</p></div>
+      <div class="card reveal"><span class="ico">⭐</span><h3>Star Plaza</h3><p>Gold tiles under a giant golden star. Best at dusk.</p></div>
+      <div class="card reveal"><span class="ico">📮</span><h3>The Invitation Archive</h3><p>Home of the email that started the nation.</p></div>
+    </div>
+  </section>
+
+  <!-- LANGUAGE -->
+  <section class="reveal">
+    <div class="section-head"><div class="kick">Tongue</div><h2 class="section-title">Speak Elizaurian</h2><p class="section-lead">Tap a word to hear it.</p></div>
+    <div class="grid">
+      <div class="card reveal say" data-word="Elzau"><span class="ico">👋</span><h3>Elzau!</h3><p>"Welcome to the dream."</p></div>
+      <div class="card reveal say" data-word="Vira"><span class="ico">📈</span><h3>Vira</h3><p>To go viral.</p></div>
+      <div class="card reveal say" data-word="Stamvel"><span class="ico">🖋️</span><h3>Stamvel</h3><p>"Make it official."</p></div>
+      <div class="card reveal say" data-word="Auria"><span class="ico">✨</span><h3>Auria</h3><p>The feeling of a dream coming true.</p></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="parchment cta-band">
+      <h3>Staying a While?</h3>
+      <a href="citizenship.html" class="btn gold" style="margin-top:.6rem">🪪 Become a Citizen</a>
+      <a href="games.html" class="btn navy" style="margin-top:.6rem">🎮 Play the Games</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="aurora"></div>
+  <div class="foot-inner">
+    <div><h4>Elizauria</h4><p style="font-size:.9rem;color:#9aa4c4">Founded 2026. "From a bedroom, a nation."</p></div>
+    <div><h4>Explore</h4><a href="founders.html">Leaders</a><a href="citizenship.html">Citizenship</a><a href="tourism.html">Visit</a><a href="games.html">Games</a><a href="news.html">News</a></div>
+  </div>
+  <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+// ---- Pet the dog ----
+var pets=+(localStorage.getItem('elz_pets')||0);
+document.getElementById('petCount').textContent=pets.toLocaleString();
+function floatHeart(x,y,ch){
+  var h=document.createElement('div'); h.className='heart'; h.textContent=ch||'❤️';
+  h.style.left=x+'px'; h.style.top=y+'px'; document.body.appendChild(h);
+  setTimeout(function(){h.remove();},1000);
+}
+function petDog(e){
+  pets++; localStorage.setItem('elz_pets',pets);
+  document.getElementById('petCount').textContent=pets.toLocaleString();
+  bark();
+  var x=(e&&e.clientX)||innerWidth/2, y=(e&&e.clientY)||innerHeight/2;
+  floatHeart(x-10,y-10); floatHeart(x+14,y);
+  if(pets%25===0) toast('🐾 '+pets+' pets! The Guardian is thriving.');
+}
+document.getElementById('petBtn').addEventListener('click',petDog);
+document.getElementById('dogPhotoWrap').addEventListener('click',petDog);
+document.getElementById('treatBtn').addEventListener('click',function(e){
+  bark(); floatHeart(e.clientX||innerWidth/2,e.clientY||innerHeight/2,'🦴');
+});
+
+// ---- Punch minigame ----
+var bag=document.getElementById('bag'), punches=0, combo=0, strength=0, comboTimer;
+var record=+(localStorage.getItem('elz_record')||0);
+document.getElementById('record').textContent=record;
+var ranks=[[0,'Recruit'],[15,'Cadet'],[40,'Fighter'],[80,'Champion'],[150,'National Hero'],[300,'Legend']];
+function rankFor(n){ var r='Recruit'; ranks.forEach(function(x){ if(n>=x[0]) r=x[1]; }); return r; }
+bag.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  punches++; combo++; strength=Math.min(100,strength+7);
+  document.getElementById('punches').textContent=punches;
+  document.getElementById('combo').textContent=combo;
+  document.getElementById('strength').style.width=strength+'%';
+  document.getElementById('rank').textContent='Rank: '+rankFor(punches)+(combo>4?' 🔥 '+combo+'x combo!':'');
+  bag.classList.remove('hit'); void bag.offsetWidth; bag.classList.add('hit');
+  thud();
+  var pop=document.createElement('div'); pop.className='punch-pop';
+  pop.textContent=combo>1?combo+'x!':'POW!';
+  pop.style.left=(e.clientX||innerWidth/2)+'px'; pop.style.top=((e.clientY||innerHeight/2)-30)+'px';
+  document.body.appendChild(pop); setTimeout(function(){pop.remove();},800);
+  if(punches>record){ record=punches; localStorage.setItem('elz_record',record); document.getElementById('record').textContent=record; }
+  clearTimeout(comboTimer);
+  comboTimer=setTimeout(function(){ combo=0; document.getElementById('combo').textContent=0; },1500);
+});
+setInterval(function(){ if(strength>0){ strength=Math.max(0,strength-2); document.getElementById('strength').style.width=strength+'%'; } },400);
+
+// ---- Speak words ----
+document.querySelectorAll('.say').forEach(function(c){
+  c.style.cursor='pointer';
+  c.addEventListener('click',function(){
+    var w=c.getAttribute('data-word');
+    if('speechSynthesis' in window){ var u=new SpeechSynthesisUtterance(w); u.rate=.85; u.pitch=1.1; speechSynthesis.speak(u); }
+    toast('🗣️ "'+w+'"');
+  });
+});
+</script>
+</body>
+</html>
