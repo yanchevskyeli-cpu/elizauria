@@ -94,6 +94,16 @@
   </section>
 
   <section class="reveal">
+    <div class="section-head"><div class="kick">Ministry of Documents</div><h2 class="section-title">Lost Your ID?</h2><p class="section-lead">Already a citizen? Retrieve your original ID on the device you signed up with, no new citizenship needed.</p></div>
+    <div class="form-card" style="max-width:520px">
+      <form id="findForm">
+        <div class="field"><label for="findName">Your full name</label><input id="findName" type="text" placeholder="e.g. Anatoly Kirilenko" required></div>
+        <button type="submit" class="btn navy" style="width:100%;justify-content:center">🔎 Retrieve My ID</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="reveal">
     <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">3</span> citizens on the public registry, visible to the whole world.</p></div>
     <div class="wall" id="wall"></div>
   </section>
@@ -160,12 +170,12 @@ document.getElementById('citForm').addEventListener('submit',function(e){
     +'?subject='+encodeURIComponent('Elizauria citizenship application: '+fullName)
     +'&body='+encodeURIComponent('Name: '+fullName+'\nRole: '+role+'\nOrigin: '+(g('region')||'Earth')+'\n\nI took the Citizen\'s Oath and request to join the public registry. (Attach a photo if you want it on your citizen card!)\n\nLong live Elizauria!');
 
-  // 2) Then save to the registry (never blocks the ID)
-  try{
-    Registry.add({ name:(fname+' '+lname).trim()||'Anonymous', role:role, initial:(fname[0]||'★').toUpperCase(), photo:photoData, at:Date.now() });
-  }catch(err){
-    try{ Registry.add({ name:(fname+' '+lname).trim()||'Anonymous', role:role, initial:(fname[0]||'★').toUpperCase(), photo:null, at:Date.now() }); }catch(e2){}
-  }
+  // 2) Then save the full ID to the registry (never blocks the ID)
+  var rec={ name:(fname+' '+lname).trim()||'Anonymous', fname:fname, lname:lname, role:role,
+            origin:g('region')||'Earth', num:num, initial:(fname[0]||'★').toUpperCase(),
+            photo:photoData, at:Date.now() };
+  try{ Registry.add(rec); }
+  catch(err){ try{ rec.photo=null; Registry.add(rec); }catch(e2){} }
   renderWall();
 
   var p=document.getElementById('passport'); p.classList.add('show');
@@ -174,6 +184,35 @@ document.getElementById('citForm').addEventListener('submit',function(e){
 });
 
 renderWall();
+
+// ---- Lost ID recovery (same device where they signed up) ----
+function showSavedID(rec){
+  if(!rec.num){
+    rec.num='ELZ-'+Math.floor(100000+Math.random()*899999);
+    try{ localStorage.setItem(Registry.key, JSON.stringify(Registry.all().map(function(c){ return c.at===rec.at?rec:c; }))); }catch(e){}
+  }
+  document.getElementById('ppName').textContent=(rec.name||'CITIZEN').toUpperCase();
+  document.getElementById('ppNum').textContent=rec.num;
+  document.getElementById('ppRegion').textContent=rec.origin||'Earth';
+  document.getElementById('ppRole').textContent=rec.role||'Citizen';
+  document.getElementById('ppIssued').textContent=new Date(rec.at||Date.now()).toLocaleDateString();
+  document.getElementById('ppPhoto').innerHTML= rec.photo ? '<img src="'+rec.photo+'" alt="">' : '🙂';
+  var fn=rec.fname||rec.name||'', ln=rec.lname||'';
+  var mrzName=(ln+'<<'+fn).toUpperCase().replace(/[^A-Z<]/g,'<');
+  document.getElementById('ppMrz').textContent=('ELZ<'+mrzName).padEnd(30,'<').slice(0,30)+String(rec.num).replace(/-/g,'');
+  document.getElementById('applyPublic').href='mailto:natikyan153@gmail.com'
+    +'?subject='+encodeURIComponent('Elizauria citizenship application: '+rec.name)
+    +'&body='+encodeURIComponent('Name: '+rec.name+'\nRole: '+(rec.role||'Citizen')+'\nOrigin: '+(rec.origin||'Earth')+'\nCitizen No.: '+rec.num+'\n\nI took the Citizen\'s Oath and request to join the public registry. (Attach a photo if you want it on your citizen card!)\n\nLong live Elizauria!');
+  var p=document.getElementById('passport'); p.classList.add('show');
+  p.scrollIntoView({behavior:'smooth',block:'center'});
+}
+document.getElementById('findForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var q=document.getElementById('findName').value.trim().toLowerCase();
+  var rec=Registry.all().find(function(c){ return (c.name||'').toLowerCase()===q; });
+  if(rec){ showSavedID(rec); toast('🪪 Found you, '+rec.name+'! Here is your ID.'); }
+  else toast('No record on this device. IDs can only be retrieved on the device used to sign up.');
+});
 </script>
 </body>
 </html>
