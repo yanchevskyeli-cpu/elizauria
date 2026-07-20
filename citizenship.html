@@ -89,6 +89,7 @@
           <button class="btn gold sm" onclick="window.print()">🖨️ Print / Save</button>
           <a href="#" id="applyPublic" target="_blank" rel="noopener" class="btn ghost sm" style="color:#fff">📣 Join the Public Registry</a>
           <a href="games.html" class="btn ghost sm" style="color:#fff">Play the Games →</a>
+          <button type="button" class="btn danger sm" id="delID">🗑️ Delete This ID</button>
         </div>
         <p style="margin-top:.8rem;font-size:.78rem;color:#9aa4c4">The public registry is visible to the whole world. Applying sends your details to the Office of the Founders for approval.</p>
       </div>
@@ -108,6 +109,12 @@
   <section class="reveal">
     <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">3</span> citizens on the public registry, visible to the whole world.</p></div>
     <div class="wall" id="wall"></div>
+    <div class="form-card" style="max-width:520px;margin-top:2rem">
+      <form id="removeForm">
+        <div class="field"><label for="removeName">Leave the wall - type your full name to remove your citizenship</label><input id="removeName" type="text" placeholder="e.g. Anatoly Kirilenko" required></div>
+        <button type="submit" class="btn danger" style="width:100%;justify-content:center">🗑️ Remove Me From the Wall</button>
+      </form>
+    </div>
   </section>
 
 </main>
@@ -125,6 +132,21 @@
 <script>
 var faces=['🙂','😎','🤩','🦸','🤴','🐕'];
 var photoData=null;
+var currentRec=null;
+
+// ---- Delete the ID currently shown on the card ----
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('delID').addEventListener('click',function(){
+    if(!currentRec){ toast('No ID on screen.'); return; }
+    var inRegistry=currentRec.at && Registry.all().some(function(c){ return c.at===currentRec.at; });
+    if(!inRegistry){ toast('👑 Official state records can only be removed by the President.'); return; }
+    if(!confirm('Delete the ID of '+currentRec.name+'? This cannot be undone.')) return;
+    Registry.remove(function(c){ return c.at===currentRec.at; });
+    currentRec=null;
+    document.getElementById('passport').classList.remove('show');
+    renderWall(); toast('🗑️ ID deleted. Citizenship revoked.');
+  });
+});
 
 // Resize photo to a small thumbnail so it always fits in storage
 document.getElementById('photo').addEventListener('change',function(e){
@@ -220,6 +242,7 @@ function issueID(role){
             photo:photoData, at:Date.now() };
   try{ Registry.add(rec); }
   catch(err){ try{ rec.photo=null; Registry.add(rec); }catch(e2){} }
+  currentRec=rec;
   renderWall();
 
   var p=document.getElementById('passport'); p.classList.add('show');
@@ -231,6 +254,7 @@ renderWall();
 
 // ---- Lost ID recovery (same device where they signed up) ----
 function showSavedID(rec){
+  currentRec=rec;
   if(!rec.num){
     rec.num='ELZ-'+Math.floor(100000+Math.random()*899999);
     try{ localStorage.setItem(Registry.key, JSON.stringify(Registry.all().map(function(c){ return c.at===rec.at?rec:c; }))); }catch(e){}
@@ -250,6 +274,25 @@ function showSavedID(rec){
   var p=document.getElementById('passport'); p.classList.add('show');
   p.scrollIntoView({behavior:'smooth',block:'center'});
 }
+// ---- Remove yourself from the wall by name ----
+document.getElementById('removeForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var q=document.getElementById('removeName').value.trim().toLowerCase();
+  var matches=Registry.all().filter(function(c){ return (c.name||'').toLowerCase()===q; });
+  if(matches.length){
+    if(!confirm('Remove '+matches[0].name+' from the Wall of Citizens? This cannot be undone.')) return;
+    Registry.remove(function(c){ return (c.name||'').toLowerCase()===q; });
+    renderWall(); this.reset(); toast('🗑️ Removed from the wall. Farewell, citizen.');
+    return;
+  }
+  loadPublicCitizens().then(function(pub){
+    if(pub.some(function(c){ return (c.name||'').toLowerCase()===q; }))
+      toast('👑 Official citizens can only be removed by the President.');
+    else
+      toast('No citizen with that name on this device.');
+  });
+});
+
 document.getElementById('findForm').addEventListener('submit',function(e){
   e.preventDefault();
   var q=document.getElementById('findName').value.trim().toLowerCase();

@@ -87,6 +87,7 @@
         <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem">
           <button class="btn gold sm" onclick="window.print()">🖨️ Print / Save</button>
           <a href="citizenship.html" class="btn ghost sm" style="color:#fff">Need an ID too? →</a>
+          <button type="button" class="btn danger sm" id="delPP">🗑️ Delete This Passport</button>
         </div>
       </div>
     </div>
@@ -118,8 +119,10 @@
 var Passports={
   key:'elz_passports',
   all:function(){ try{return JSON.parse(localStorage.getItem(this.key))||[];}catch(e){return[];} },
-  add:function(p){ var a=this.all(); a.unshift(p); localStorage.setItem(this.key,JSON.stringify(a.slice(0,200))); }
+  add:function(p){ var a=this.all(); a.unshift(p); localStorage.setItem(this.key,JSON.stringify(a)); },
+  remove:function(pred){ var a=this.all().filter(function(c){return !pred(c);}); localStorage.setItem(this.key,JSON.stringify(a)); }
 };
+var currentPP=null;
 var photoData=null;
 document.getElementById('photo').addEventListener('change',function(e){
   var f=e.target.files[0]; if(!f) return;
@@ -142,6 +145,7 @@ document.getElementById('photo').addEventListener('change',function(e){
 
 function mrz(s,len){ return s.toUpperCase().replace(/[^A-Z0-9<]/g,'<').padEnd(len,'<').slice(0,len); }
 function showPassport(rec){
+  currentPP=rec;
   document.getElementById('pbLname').textContent=(rec.lname||'—').toUpperCase();
   document.getElementById('pbFname').textContent=(rec.fname||'—').toUpperCase();
   document.getElementById('pbDob').textContent=rec.dob||'—';
@@ -165,6 +169,17 @@ document.getElementById('ppForm').addEventListener('submit',function(e){
   showPassport(rec);
   try{ Passports.add(rec); }catch(err){ try{ rec.photo=null; Passports.add(rec); }catch(e2){} }
   confetti(); toast('🛂 Passport issued. Safe travels, Elizaurian!');
+});
+
+document.getElementById('delPP').addEventListener('click',function(){
+  if(!currentPP){ toast('No passport on screen.'); return; }
+  var inLocal=currentPP.at && Passports.all().some(function(c){ return c.at===currentPP.at; });
+  if(!inLocal){ toast('👑 Official state passports can only be removed by the President.'); return; }
+  if(!confirm('Delete the passport of '+(currentPP.name||'this holder')+'? This cannot be undone.')) return;
+  Passports.remove(function(c){ return c.at===currentPP.at; });
+  currentPP=null;
+  document.getElementById('passbook').classList.remove('show');
+  toast('🗑️ Passport deleted.');
 });
 
 document.getElementById('findForm').addEventListener('submit',function(e){

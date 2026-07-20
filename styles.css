@@ -115,6 +115,8 @@ nav.main a.active{background:var(--gold);color:var(--navy)}
 .btn.navy{background:var(--navy-2);color:#fff}
 .btn.navy:hover{background:var(--navy-3);transform:translateY(-3px)}
 .btn.sm{padding:.55rem 1.1rem;font-size:.82rem}
+.btn.danger{background:#a8322c;color:#fff}
+.btn.danger:hover{background:#c23d36;transform:translateY(-3px)}
 
 /* ---- Layout ---- */
 main{max-width:1200px;margin:0 auto;padding:4rem 1.25rem}

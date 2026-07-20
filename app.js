@@ -12,7 +12,8 @@ window.ELZ = {
 const Registry = {
   key: "elz_citizens",
   all(){ try{ return JSON.parse(localStorage.getItem(this.key)) || []; }catch(e){ return []; } },
-  add(c){ const a=this.all(); a.unshift(c); localStorage.setItem(this.key, JSON.stringify(a.slice(0,500))); return a.length; },
+  add(c){ const a=this.all(); a.unshift(c); localStorage.setItem(this.key, JSON.stringify(a)); return a.length; },
+  remove(pred){ const a=this.all().filter(c=>!pred(c)); localStorage.setItem(this.key, JSON.stringify(a)); },
   count(){ return this.all().length; }
 };
 
