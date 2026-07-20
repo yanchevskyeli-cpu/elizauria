@@ -43,14 +43,14 @@
 
   <!-- NATIONAL DOG -->
   <section id="dog" class="reveal">
-    <div class="section-head"><div class="kick">Living Landmark</div><h2 class="section-title">The National Dog</h2></div>
+    <div class="section-head"><div class="kick">Living Landmark</div><h2 class="section-title">Boni, the National Dog</h2></div>
     <div class="split">
-      <div class="photo" id="dogPhotoWrap" title="Tap to pet!"><img src="dog.jpg" alt="The National Dog of Elizauria"></div>
+      <div class="photo" id="dogPhotoWrap" title="Tap to pet Boni!"><img src="dog.jpg" alt="Boni, the National Dog of Elizauria"></div>
       <div>
         <span class="tag">Guardian of the Realm</span>
-        <p style="color:var(--muted);margin:.7rem 0 1rem">Official Guardian by royal decree. Patrols the capital couch, greets every visitor, always majestic. Tap the photo to pet!</p>
-        <p style="color:var(--navy);font-weight:700;margin-bottom:.8rem">Times petted: <span id="petCount" style="color:var(--gold-deep)">0</span></p>
-        <button class="btn gold" id="petBtn">🐾 Pet the Dog</button>
+        <p style="color:var(--muted);margin:.7rem 0 1rem">Boni guards the realm by royal decree. Patrols the capital couch, greets every visitor, always majestic. Tap the photo to pet!</p>
+        <p style="color:var(--navy);font-weight:700;margin-bottom:.8rem">Times Boni was petted: <span id="petCount" style="color:var(--gold-deep)">0</span></p>
+        <button class="btn gold" id="petBtn">🐾 Pet Boni</button>
         <button class="btn navy sm" id="treatBtn" style="margin-left:.5rem">🦴 Treat</button>
       </div>
     </div>
@@ -129,7 +129,7 @@ function petDog(e){
   bark();
   var x=(e&&e.clientX)||innerWidth/2, y=(e&&e.clientY)||innerHeight/2;
   floatHeart(x-10,y-10); floatHeart(x+14,y);
-  if(pets%25===0) toast('🐾 '+pets+' pets! The Guardian is thriving.');
+  if(pets%25===0) toast('🐾 '+pets+' pets! Boni is thriving.');
 }
 document.getElementById('petBtn').addEventListener('click',petDog);
 document.getElementById('dogPhotoWrap').addEventListener('click',petDog);

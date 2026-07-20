@@ -4,8 +4,7 @@
 
 /* ---- National config (edit me!) ---- */
 window.ELZ = {
-  dogName: "Auri",          // <-- change to your dog's real name
-  basePopulation: 14200000, // ceremonial starting population
+  dogName: "Boni",
   founded: 2026
 };
 
@@ -21,7 +20,7 @@ const Registry = {
 const FOUNDERS=[
   {name:"Eli Yanchevsky", role:"President", photo:"president.jpg"},
   {name:"Netanel Yanchevsky", role:"Prime Minister", photo:"minister.jpg"},
-  {name:"The National Dog", role:"Guardian of the Realm", photo:"dog.jpg"}
+  {name:"Boni", role:"National Dog · Guardian of the Realm", photo:"dog.jpg"}
 ];
 function escHtml(s){ return String(s).replace(/</g,"&lt;"); }
 function renderCitizenWall(wallId,countId){
@@ -108,13 +107,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     co.observe(el);
   });
 
-  // live population (base + real citizens, tiny drift)
+  // real population: founders + citizens registered on this device
   const pop=document.getElementById('livePop');
-  if(pop){
-    let n=window.ELZ.basePopulation+Registry.count()*137+318;
-    const render=()=>pop.textContent=n.toLocaleString();
-    render(); setInterval(()=>{ n+=Math.floor(Math.random()*6); render(); },1600);
-  }
+  if(pop) pop.textContent=(FOUNDERS.length+Registry.count()).toLocaleString();
 
   // Elizapolis clock
   const clk=document.getElementById('clock');
