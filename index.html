@@ -126,6 +126,11 @@
   </section>
 
   <section class="reveal">
+    <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="homeWallCount">3</span> citizens and rising.</p></div>
+    <div class="wall" id="homeWall"></div>
+  </section>
+
+  <section class="reveal">
     <div class="parchment cta-band">
       <h3>Join Us</h3>
       <p>Citizenship is free and instant, photo ID included.</p>
@@ -149,6 +154,7 @@
 document.querySelectorAll('#natMap .pin').forEach(function(p){
   p.addEventListener('click',function(){ window.location.href=p.getAttribute('data-link'); });
 });
+renderCitizenWall('homeWall','homeWallCount');
 </script>
 </body>
 </html>

@@ -92,8 +92,8 @@
   </section>
 
   <section class="reveal">
-    <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">0</span> citizens registered on this device.</p></div>
-    <div class="wall" id="wall"><div class="empty-wall">No citizens yet, be the first. 👆</div></div>
+    <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">3</span> citizens and rising.</p></div>
+    <div class="wall" id="wall"></div>
   </section>
 
 </main>
@@ -132,16 +132,7 @@ document.getElementById('photo').addEventListener('change',function(e){
   r.readAsDataURL(f);
 });
 
-function esc(s){ return String(s).replace(/</g,'&lt;'); }
-function renderWall(){
-  var wall=document.getElementById('wall'), list=Registry.all();
-  document.getElementById('wallCount').textContent=list.length;
-  if(!list.length){ wall.innerHTML='<div class="empty-wall">No citizens yet, be the first. 👆</div>'; return; }
-  wall.innerHTML=list.map(function(c){
-    var av=c.photo?'<img src="'+c.photo+'" alt="">':esc(c.initial||'★');
-    return '<div class="cz"><div class="av">'+av+'</div><div class="nm">'+esc(c.name)+'</div><div class="rl">'+esc(c.role)+'</div></div>';
-  }).join('');
-}
+function renderWall(){ renderCitizenWall('wall','wallCount'); }
 
 document.getElementById('citForm').addEventListener('submit',function(e){
   e.preventDefault();

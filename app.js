@@ -17,6 +17,27 @@ const Registry = {
   count(){ return this.all().length; }
 };
 
+/* ---- Founding citizens (always on the wall) ---- */
+const FOUNDERS=[
+  {name:"Eli Yanchevsky", role:"President", photo:"president.jpg"},
+  {name:"Netanel Yanchevsky", role:"Prime Minister", photo:"minister.jpg"},
+  {name:"The National Dog", role:"Guardian of the Realm", photo:"dog.jpg"}
+];
+function escHtml(s){ return String(s).replace(/</g,"&lt;"); }
+function renderCitizenWall(wallId,countId){
+  const wall=document.getElementById(wallId); if(!wall) return;
+  const list=Registry.all();
+  if(countId){ const c=document.getElementById(countId); if(c) c.textContent=FOUNDERS.length+list.length; }
+  const founderHtml=FOUNDERS.map(f=>
+    '<div class="cz founder"><div class="av"><img src="'+f.photo+'" alt=""></div><div class="nm">'+escHtml(f.name)+'</div><div class="rl">👑 '+escHtml(f.role)+'</div></div>'
+  ).join('');
+  const citHtml=list.map(c=>{
+    const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||'★');
+    return '<div class="cz"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role)+'</div></div>';
+  }).join('');
+  wall.innerHTML=founderHtml+citHtml;
+}
+
 /* ---- Small helpers ---- */
 function toast(msg){
   let t=document.querySelector('.toast');
