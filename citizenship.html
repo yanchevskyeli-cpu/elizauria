@@ -167,7 +167,7 @@ document.getElementById('citForm').addEventListener('submit',function(e){
 
   // Prefill the public-registry application (email to the Office of the Founders)
   var fullName=(fname+' '+lname).trim()||'Anonymous Citizen';
-  document.getElementById('applyPublic').href='mailto:yanchevsky.eli@gmail.com'
+  document.getElementById('applyPublic').href='mailto:elzauriail@gmail.com'
     +'?subject='+encodeURIComponent('Elizauria citizenship application: '+fullName)
     +'&body='+encodeURIComponent('Name: '+fullName+'\nRole: '+role+'\nOrigin: '+(g('region')||'Earth')+'\n\nI took the Citizen\'s Oath and request to join the public registry. (Attach a photo if you want it on your citizen card!)\n\nLong live Elizauria!');
 
@@ -201,7 +201,7 @@ function showSavedID(rec){
   var fn=rec.fname||rec.name||'', ln=rec.lname||'';
   var mrzName=(ln+'<<'+fn).toUpperCase().replace(/[^A-Z<]/g,'<');
   document.getElementById('ppMrz').textContent=('ELZ<'+mrzName).padEnd(30,'<').slice(0,30)+String(rec.num).replace(/-/g,'');
-  document.getElementById('applyPublic').href='mailto:yanchevsky.eli@gmail.com'
+  document.getElementById('applyPublic').href='mailto:elzauriail@gmail.com'
     +'?subject='+encodeURIComponent('Elizauria citizenship application: '+rec.name)
     +'&body='+encodeURIComponent('Name: '+rec.name+'\nRole: '+(rec.role||'Citizen')+'\nOrigin: '+(rec.origin||'Earth')+'\nCitizen No.: '+rec.num+'\n\nI took the Citizen\'s Oath and request to join the public registry. (Attach a photo if you want it on your citizen card!)\n\nLong live Elizauria!');
   var p=document.getElementById('passport'); p.classList.add('show');

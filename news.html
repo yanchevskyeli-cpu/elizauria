@@ -42,17 +42,16 @@
 
 <main>
 
-  <!-- Propose a decree -->
+  <!-- Post news -->
   <section class="reveal">
-    <div class="section-head"><div class="kick">Have Your Say</div><h2 class="section-title">Propose a Royal Decree</h2><p class="section-lead">Approved decrees are published in the national bulletin for the whole world to see.</p></div>
+    <div class="section-head"><div class="kick">Have Your Say</div><h2 class="section-title">Post to the National Bulletin</h2><p class="section-lead">Published instantly, visible to every visitor worldwide.</p></div>
     <div class="form-card">
       <form id="decreeForm">
-        <div class="field"><label for="dAuthor">Your Name</label><input id="dAuthor" type="text" placeholder="Who proposes this decree?" required></div>
-        <div class="field"><label for="dTitle">Decree Title</label><input id="dTitle" type="text" placeholder="e.g. On the Right to Nap on Sundays" required></div>
-        <div class="field"><label for="dBody">The Decree</label><textarea id="dBody" rows="3" placeholder="Let it be known that..." required></textarea></div>
-        <button type="submit" class="btn gold" style="width:100%;justify-content:center">🖋️ Send to the Founders</button>
+        <div class="field"><label for="dAuthor">Your Name</label><input id="dAuthor" type="text" placeholder="Who writes this news?" required maxlength="40"></div>
+        <div class="field"><label for="dTitle">Headline</label><input id="dTitle" type="text" placeholder="e.g. On the Right to Nap on Sundays" required maxlength="80"></div>
+        <div class="field"><label for="dBody">The News</label><textarea id="dBody" rows="3" placeholder="Let it be known that..." required maxlength="500"></textarea></div>
+        <button type="submit" class="btn gold" style="width:100%;justify-content:center">🖋️ Publish to the Nation</button>
       </form>
-      <p style="margin-top:.8rem;font-size:.78rem;color:var(--muted)">Your decree opens as an email to the Office of the Founders. Once approved, it appears below for everyone.</p>
     </div>
   </section>
 
@@ -94,37 +93,45 @@
 
 <script src="app.js"></script>
 <script>
-var DK='elz_decrees_pending';
+/* National bulletin: shared worldwide via textdb.dev (no account, instant).
+   The President can reset the feed by overwriting this key. */
+var FEED_URL='https://textdb.dev/api/data/elizauria-news-7f3a9c2e-4b61-48d5-b2a0-9e8c1d5f6a37';
 function esc(s){ return String(s).replace(/</g,'&lt;'); }
-function getPending(){ try{return JSON.parse(localStorage.getItem(DK))||[];}catch(e){return[];} }
 
-// Public decrees (decrees.json on GitHub, visible to everyone) + this device's pending ones
-function renderDecrees(){
+function fetchFeed(){
+  return fetch(FEED_URL,{headers:{'accept':'application/json'},cache:'no-store'})
+    .then(function(r){ return r.text(); })
+    .then(function(t){ try{ var d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
+    .catch(function(){ return null; });
+}
+function renderFeed(list){
   var box=document.getElementById('publicDecrees');
-  var pendingHtml=getPending().map(function(d){
-    return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Decree · '+esc(d.date)+' · by '+esc(d.author)+'</div><h3>'+esc(d.title)+' <span class="badge">Pending Approval</span></h3><p>'+esc(d.body)+'</p></div>';
+  var community=(list||[]).map(function(d){
+    return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Bulletin · '+esc(d.date||'')+' · by '+esc(d.author||'a citizen')+'</div><h3>'+esc(d.title)+' <span class="badge">Citizen Post</span></h3><p>'+esc(d.body)+'</p></div>';
   }).join('');
-  fetch('decrees.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(list){
-    var pubHtml=(Array.isArray(list)?list:[]).map(function(d){
+  fetch('decrees.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(official){
+    var offHtml=(Array.isArray(official)?official:[]).map(function(d){
       return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Decree · '+esc(d.date||'')+' · by '+esc(d.author||'a citizen')+'</div><h3>'+esc(d.title)+' <span class="badge">Decree</span></h3><p>'+esc(d.body)+'</p></div>';
     }).join('');
-    box.innerHTML=pendingHtml+pubHtml;
-  }).catch(function(){ box.innerHTML=pendingHtml; });
+    box.innerHTML=community+offHtml;
+  }).catch(function(){ box.innerHTML=community; });
 }
+
+fetchFeed().then(function(list){ renderFeed(list||[]); });
 
 document.getElementById('decreeForm').addEventListener('submit',function(e){
   e.preventDefault();
   var a=document.getElementById('dAuthor').value.trim(), t=document.getElementById('dTitle').value.trim(), b=document.getElementById('dBody').value.trim();
   if(!a||!t||!b) return;
-  var list=getPending();
-  list.unshift({author:a,title:t,body:b,date:new Date().toLocaleDateString()});
-  localStorage.setItem(DK,JSON.stringify(list.slice(0,30)));
-  this.reset(); renderDecrees(); confetti(); toast('📜 Decree sent to the founders for approval!');
-  location.href='mailto:yanchevsky.eli@gmail.com'
-    +'?subject='+encodeURIComponent('Elizauria decree proposal: '+t)
-    +'&body='+encodeURIComponent('Author: '+a+'\nTitle: '+t+'\n\n'+b+'\n\nPlease approve me into decrees.json!');
+  var form=this;
+  fetchFeed().then(function(list){
+    if(list===null){ toast('⚠️ Could not reach the national feed. Try again in a moment.'); return; }
+    list.unshift({author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()});
+    list=list.slice(0,100);
+    return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list)})
+      .then(function(){ form.reset(); renderFeed(list); confetti(); toast('📰 Published! The whole nation can see it.'); });
+  }).catch(function(){ toast('⚠️ Could not publish. Check your internet and try again.'); });
 });
-renderDecrees();
 </script>
 </body>
 </html>
