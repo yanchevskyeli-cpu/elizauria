@@ -88,7 +88,7 @@
           <a href="#" id="applyPublic" target="_blank" rel="noopener" class="btn ghost sm" style="color:#fff">📣 Join the Public Registry</a>
           <a href="games.html" class="btn ghost sm" style="color:#fff">Play the Games →</a>
         </div>
-        <p style="margin-top:.8rem;font-size:.78rem;color:#9aa4c4">The public registry lives on GitHub for the whole world to see. Applying opens a citizenship request that the President approves.</p>
+        <p style="margin-top:.8rem;font-size:.78rem;color:#9aa4c4">The public registry is visible to the whole world. Applying sends your details to the Office of the Founders for approval.</p>
       </div>
     </div>
   </section>
@@ -154,11 +154,11 @@ document.getElementById('citForm').addEventListener('submit',function(e){
   var mrzName=(lname+'<<'+fname).toUpperCase().replace(/[^A-Z<]/g,'<');
   document.getElementById('ppMrz').textContent=('ELZ<'+mrzName).padEnd(30,'<').slice(0,30)+num.replace(/-/g,'');
 
-  // Prefill the public-registry application (GitHub issue)
+  // Prefill the public-registry application (email to the Office of the Founders)
   var fullName=(fname+' '+lname).trim()||'Anonymous Citizen';
-  document.getElementById('applyPublic').href='https://github.com/yanchevskyeli-cpu/elizauria/issues/new'
-    +'?title='+encodeURIComponent('Citizenship application: '+fullName)
-    +'&body='+encodeURIComponent('Name: '+fullName+'\nRole: '+role+'\nOrigin: '+(g('region')||'Earth')+'\n\nI took the Citizen\'s Oath and request to be added to citizens.json. Long live Elizauria!');
+  document.getElementById('applyPublic').href='mailto:natikyan153@gmail.com'
+    +'?subject='+encodeURIComponent('Elizauria citizenship application: '+fullName)
+    +'&body='+encodeURIComponent('Name: '+fullName+'\nRole: '+role+'\nOrigin: '+(g('region')||'Earth')+'\n\nI took the Citizen\'s Oath and request to join the public registry. (Attach a photo if you want it on your citizen card!)\n\nLong live Elizauria!');
 
   // 2) Then save to the registry (never blocks the ID)
   try{
