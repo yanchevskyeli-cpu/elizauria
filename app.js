@@ -16,25 +16,70 @@ const Registry = {
   count(){ return this.all().length; }
 };
 
-/* ---- Founding citizens (always on the wall) ---- */
+/* ---- Public citizen database: citizens.json in the GitHub repo ----
+   Everyone who visits the site sees the same wall. New citizens apply
+   via a GitHub issue; approved ones are added to citizens.json. */
 const FOUNDERS=[
   {name:"Eli Yanchevsky", role:"President", photo:"president.jpg"},
   {name:"Netanel Yanchevsky", role:"Prime Minister", photo:"minister.jpg"},
   {name:"Boni", role:"National Dog · Guardian of the Realm", photo:"dog.jpg"}
 ];
+let PUBLIC_CITIZENS=null;
+async function loadPublicCitizens(){
+  if(PUBLIC_CITIZENS) return PUBLIC_CITIZENS;
+  try{
+    const r=await fetch('citizens.json',{cache:'no-store'});
+    const data=await r.json();
+    PUBLIC_CITIZENS=Array.isArray(data)&&data.length?data:FOUNDERS;
+  }catch(e){ PUBLIC_CITIZENS=FOUNDERS; } // file:// fallback
+  return PUBLIC_CITIZENS;
+}
 function escHtml(s){ return String(s).replace(/</g,"&lt;"); }
-function renderCitizenWall(wallId,countId){
+
+/* Expandable citizen detail (tap a card) */
+function openCitizen(c,founder){
+  let m=document.getElementById('czModal');
+  if(m) m.remove();
+  m=document.createElement('div'); m.id='czModal'; m.className='cz-modal';
+  const av=c.photo?'<img src="'+c.photo+'" alt="">':'<span>'+escHtml((c.name||'★')[0].toUpperCase())+'</span>';
+  const since=c.since||(c.at?new Date(c.at).toLocaleDateString():'2026');
+  m.innerHTML='<div class="cz-sheet">'
+    +'<button class="cz-close" aria-label="Close">✕</button>'
+    +'<div class="cz-big-av">'+av+'</div>'
+    +'<h3>'+(founder?'👑 ':'')+escHtml(c.name)+'</h3>'
+    +'<div class="cz-role">'+escHtml(c.role||'Citizen')+(founder?'':' · pending approval')+'</div>'
+    +'<div class="cz-facts">'
+    +'<div><b>Origin</b>'+escHtml(c.origin||'Earth')+'</div>'
+    +'<div><b>Citizen since</b>'+escHtml(since)+'</div>'
+    +'<div><b>Status</b>'+(founder?'Founding Citizen':'Early Citizen ★')+'</div>'
+    +'</div>'
+    +(c.bio?'<p class="cz-bio">'+escHtml(c.bio)+'</p>':'')
+    +'</div>';
+  m.addEventListener('click',e=>{ if(e.target===m||e.target.classList.contains('cz-close')) m.remove(); });
+  document.body.appendChild(m);
+}
+
+async function renderCitizenWall(wallId,countId){
   const wall=document.getElementById(wallId); if(!wall) return;
-  const list=Registry.all();
-  if(countId){ const c=document.getElementById(countId); if(c) c.textContent=FOUNDERS.length+list.length; }
-  const founderHtml=FOUNDERS.map(f=>
-    '<div class="cz founder"><div class="av"><img src="'+f.photo+'" alt=""></div><div class="nm">'+escHtml(f.name)+'</div><div class="rl">👑 '+escHtml(f.role)+'</div></div>'
-  ).join('');
-  const citHtml=list.map(c=>{
-    const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||'★');
-    return '<div class="cz"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role)+'</div></div>';
+  const pub=await loadPublicCitizens();
+  const local=Registry.all();
+  if(countId){ const c=document.getElementById(countId); if(c) c.textContent=(pub.length+local.length).toLocaleString(); }
+  const pubHtml=pub.map((f,i)=>{
+    const founder=i<3;
+    const av=f.photo?'<img src="'+f.photo+'" alt="">':escHtml((f.name||'★')[0].toUpperCase());
+    return '<div class="cz'+(founder?' founder':'')+'" data-pub="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(f.name)+'</div><div class="rl">'+(founder?'👑 ':'')+escHtml(f.role||'Citizen')+'</div></div>';
   }).join('');
-  wall.innerHTML=founderHtml+citHtml;
+  const localHtml=local.map((c,i)=>{
+    const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||'★');
+    return '<div class="cz" data-loc="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role)+' · pending</div></div>';
+  }).join('');
+  wall.innerHTML=pubHtml+localHtml;
+  wall.querySelectorAll('.cz').forEach(el=>{
+    el.addEventListener('click',()=>{
+      if(el.dataset.pub!==undefined) openCitizen(pub[+el.dataset.pub], +el.dataset.pub<3);
+      else openCitizen(local[+el.dataset.loc], false);
+    });
+  });
 }
 
 /* ---- Small helpers ---- */
@@ -107,9 +152,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     co.observe(el);
   });
 
-  // real population: founders + citizens registered on this device
+  // real population: public database + citizens registered on this device
   const pop=document.getElementById('livePop');
-  if(pop) pop.textContent=(FOUNDERS.length+Registry.count()).toLocaleString();
+  if(pop) loadPublicCitizens().then(pub=>{ pop.textContent=(pub.length+Registry.count()).toLocaleString(); });
 
   // Elizapolis clock
   const clk=document.getElementById('clock');

@@ -85,14 +85,16 @@
         <div class="mrz" id="ppMrz"></div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem">
           <button class="btn gold sm" onclick="window.print()">🖨️ Print / Save</button>
-          <a href="games.html" class="btn ghost sm" style="color:#fff">Play the National Games →</a>
+          <a href="#" id="applyPublic" target="_blank" rel="noopener" class="btn ghost sm" style="color:#fff">📣 Join the Public Registry</a>
+          <a href="games.html" class="btn ghost sm" style="color:#fff">Play the Games →</a>
         </div>
+        <p style="margin-top:.8rem;font-size:.78rem;color:#9aa4c4">The public registry lives on GitHub for the whole world to see. Applying opens a citizenship request that the President approves.</p>
       </div>
     </div>
   </section>
 
   <section class="reveal">
-    <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">3</span> citizens and rising.</p></div>
+    <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">3</span> citizens on the public registry, visible to the whole world.</p></div>
     <div class="wall" id="wall"></div>
   </section>
 
@@ -151,6 +153,12 @@ document.getElementById('citForm').addEventListener('submit',function(e){
   document.getElementById('ppPhoto').innerHTML= photoData ? '<img src="'+photoData+'" alt="">' : faces[Math.floor(Math.random()*faces.length)];
   var mrzName=(lname+'<<'+fname).toUpperCase().replace(/[^A-Z<]/g,'<');
   document.getElementById('ppMrz').textContent=('ELZ<'+mrzName).padEnd(30,'<').slice(0,30)+num.replace(/-/g,'');
+
+  // Prefill the public-registry application (GitHub issue)
+  var fullName=(fname+' '+lname).trim()||'Anonymous Citizen';
+  document.getElementById('applyPublic').href='https://github.com/yanchevskyeli-cpu/elizauria/issues/new'
+    +'?title='+encodeURIComponent('Citizenship application: '+fullName)
+    +'&body='+encodeURIComponent('Name: '+fullName+'\nRole: '+role+'\nOrigin: '+(g('region')||'Earth')+'\n\nI took the Citizen\'s Oath and request to be added to citizens.json. Long live Elizauria!');
 
   // 2) Then save to the registry (never blocks the ID)
   try{
