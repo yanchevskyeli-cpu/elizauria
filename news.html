@@ -120,7 +120,7 @@ document.getElementById('decreeForm').addEventListener('submit',function(e){
   list.unshift({author:a,title:t,body:b,date:new Date().toLocaleDateString()});
   localStorage.setItem(DK,JSON.stringify(list.slice(0,30)));
   this.reset(); renderDecrees(); confetti(); toast('📜 Decree sent to the founders for approval!');
-  location.href='mailto:natikyan153@gmail.com'
+  location.href='mailto:yanchevsky.eli@gmail.com'
     +'?subject='+encodeURIComponent('Elizauria decree proposal: '+t)
     +'&body='+encodeURIComponent('Author: '+a+'\nTitle: '+t+'\n\n'+b+'\n\nPlease approve me into decrees.json!');
 });
