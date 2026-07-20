@@ -44,19 +44,22 @@
 
   <!-- Propose a decree -->
   <section class="reveal">
-    <div class="section-head"><div class="kick">Have Your Say</div><h2 class="section-title">Propose a Royal Decree</h2><p class="section-lead">Every citizen may petition the founders. Your decree is posted instantly to the national record below.</p></div>
+    <div class="section-head"><div class="kick">Have Your Say</div><h2 class="section-title">Propose a Royal Decree</h2><p class="section-lead">Approved decrees are published in the national bulletin for the whole world to see.</p></div>
     <div class="form-card">
       <form id="decreeForm">
+        <div class="field"><label for="dAuthor">Your Name</label><input id="dAuthor" type="text" placeholder="Who proposes this decree?" required></div>
         <div class="field"><label for="dTitle">Decree Title</label><input id="dTitle" type="text" placeholder="e.g. On the Right to Nap on Sundays" required></div>
         <div class="field"><label for="dBody">The Decree</label><textarea id="dBody" rows="3" placeholder="Let it be known that..." required></textarea></div>
-        <button type="submit" class="btn gold" style="width:100%;justify-content:center">🖋️ Submit to the Record</button>
+        <button type="submit" class="btn gold" style="width:100%;justify-content:center">🖋️ Send to the Founders</button>
       </form>
+      <p style="margin-top:.8rem;font-size:.78rem;color:var(--muted)">Your decree opens as an email to the Office of the Founders. Once approved, it appears below for everyone.</p>
     </div>
-    <div id="userDecrees" style="margin-top:1.6rem"></div>
   </section>
 
   <section class="reveal">
     <div class="section-head"><div class="kick">Bulletin</div><h2 class="section-title">Latest From Elizapolis</h2></div>
+
+    <div id="publicDecrees"></div>
 
     <div class="news-item reveal"><div class="meta">Founders' Bulletin · Today</div><h3>Citizenship Registry Is Open <span class="badge">Milestone</span></h3><p>The nation began with President Eli, Prime Minister Netanel and Boni the National Dog. Every new citizen joins the Wall of Citizens, and the count is real. "Every signature is proof the dream keeps spreading," the founders said.</p></div>
 
@@ -91,22 +94,35 @@
 
 <script src="app.js"></script>
 <script>
-var DK='elz_decrees';
-function getDecrees(){ try{return JSON.parse(localStorage.getItem(DK))||[];}catch(e){return[];} }
+var DK='elz_decrees_pending';
+function esc(s){ return String(s).replace(/</g,'&lt;'); }
+function getPending(){ try{return JSON.parse(localStorage.getItem(DK))||[];}catch(e){return[];} }
+
+// Public decrees (decrees.json on GitHub, visible to everyone) + this device's pending ones
 function renderDecrees(){
-  var box=document.getElementById('userDecrees'), list=getDecrees();
-  box.innerHTML=list.map(function(d){
-    return '<div class="news-item decree"><div class="meta">Citizens\' Decree · '+d.date+'</div><h3>'+d.title+' <span class="badge">Petition</span></h3><p>'+d.body+'</p></div>';
+  var box=document.getElementById('publicDecrees');
+  var pendingHtml=getPending().map(function(d){
+    return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Decree · '+esc(d.date)+' · by '+esc(d.author)+'</div><h3>'+esc(d.title)+' <span class="badge">Pending Approval</span></h3><p>'+esc(d.body)+'</p></div>';
   }).join('');
+  fetch('decrees.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(list){
+    var pubHtml=(Array.isArray(list)?list:[]).map(function(d){
+      return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Decree · '+esc(d.date||'')+' · by '+esc(d.author||'a citizen')+'</div><h3>'+esc(d.title)+' <span class="badge">Decree</span></h3><p>'+esc(d.body)+'</p></div>';
+    }).join('');
+    box.innerHTML=pendingHtml+pubHtml;
+  }).catch(function(){ box.innerHTML=pendingHtml; });
 }
+
 document.getElementById('decreeForm').addEventListener('submit',function(e){
   e.preventDefault();
-  var t=document.getElementById('dTitle').value.trim(), b=document.getElementById('dBody').value.trim();
-  if(!t||!b) return;
-  var list=getDecrees();
-  list.unshift({title:t.replace(/</g,'&lt;'),body:b.replace(/</g,'&lt;'),date:new Date().toLocaleDateString()});
-  localStorage.setItem(DK,JSON.stringify(list.slice(0,50)));
-  this.reset(); renderDecrees(); confetti(); toast('📜 Your decree is now part of the record!');
+  var a=document.getElementById('dAuthor').value.trim(), t=document.getElementById('dTitle').value.trim(), b=document.getElementById('dBody').value.trim();
+  if(!a||!t||!b) return;
+  var list=getPending();
+  list.unshift({author:a,title:t,body:b,date:new Date().toLocaleDateString()});
+  localStorage.setItem(DK,JSON.stringify(list.slice(0,30)));
+  this.reset(); renderDecrees(); confetti(); toast('📜 Decree sent to the founders for approval!');
+  location.href='mailto:natikyan153@gmail.com'
+    +'?subject='+encodeURIComponent('Elizauria decree proposal: '+t)
+    +'&body='+encodeURIComponent('Author: '+a+'\nTitle: '+t+'\n\n'+b+'\n\nPlease approve me into decrees.json!');
 });
 renderDecrees();
 </script>
