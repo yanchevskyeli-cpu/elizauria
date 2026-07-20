@@ -210,8 +210,16 @@ document.getElementById('findForm').addEventListener('submit',function(e){
   e.preventDefault();
   var q=document.getElementById('findName').value.trim().toLowerCase();
   var rec=Registry.all().find(function(c){ return (c.name||'').toLowerCase()===q; });
-  if(rec){ showSavedID(rec); toast('🪪 Found you, '+rec.name+'! Here is your ID.'); }
-  else toast('No record on this device. IDs can only be retrieved on the device used to sign up.');
+  if(rec){ showSavedID(rec); toast('🪪 Found you, '+rec.name+'! Here is your ID.'); return; }
+  // Official citizens (public national database) can recover from any device
+  loadPublicCitizens().then(function(pub){
+    var official=pub.find(function(c){ return (c.name||'').toLowerCase()===q || (c.fname||'').toLowerCase()===q; });
+    if(official){
+      if(!official.at && official.since) official.at=new Date(official.since).getTime();
+      showSavedID(official); toast('👑 Official record found: '+official.name);
+    }
+    else toast('No record found. Regular IDs can only be retrieved on the device used to sign up.');
+  });
 });
 </script>
 </body>
