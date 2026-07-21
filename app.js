@@ -35,6 +35,18 @@ async function loadPublicCitizens(){
   }catch(e){ PUBLIC_CITIZENS=FOUNDERS; } // file:// fallback
   return PUBLIC_CITIZENS;
 }
+
+/* Shared worldwide citizen registry (same list on every device) */
+const CITIZENS_URL='https://textdb.dev/api/data/elizauria-citizens-9a4f7d21-6c3e-45b8-8f1a-2d7e9b0c4a55';
+function loadSharedCitizens(){
+  return fetch(CITIZENS_URL,{headers:{'accept':'application/json'},cache:'no-store'})
+    .then(r=>r.text())
+    .then(t=>{ try{ const d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
+    .catch(()=>[]);
+}
+function saveSharedCitizens(list){
+  return fetch(CITIZENS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list)});
+}
 function escHtml(s){ return String(s).replace(/</g,"&lt;"); }
 
 /* Expandable citizen detail (tap a card) */
@@ -48,7 +60,7 @@ function openCitizen(c,founder){
     +'<button class="cz-close" aria-label="Close">✕</button>'
     +'<div class="cz-big-av">'+av+'</div>'
     +'<h3>'+(founder?'👑 ':'')+escHtml(c.name)+'</h3>'
-    +'<div class="cz-role">'+escHtml(c.role||'Citizen')+(founder?'':' · pending approval')+'</div>'
+    +'<div class="cz-role">'+escHtml(c.role||'Citizen')+'</div>'
     +'<div class="cz-facts">'
     +'<div><b>Origin</b>'+escHtml(c.origin||'Earth')+'</div>'
     +'<div><b>Citizen since</b>'+escHtml(since)+'</div>'
@@ -62,23 +74,22 @@ function openCitizen(c,founder){
 
 async function renderCitizenWall(wallId,countId){
   const wall=document.getElementById(wallId); if(!wall) return;
-  const pub=await loadPublicCitizens();
-  const local=Registry.all();
-  if(countId){ const c=document.getElementById(countId); if(c) c.textContent=(pub.length+local.length).toLocaleString(); }
+  const [pub,shared]=await Promise.all([loadPublicCitizens(),loadSharedCitizens()]);
+  if(countId){ const c=document.getElementById(countId); if(c) c.textContent=(pub.length+shared.length).toLocaleString(); }
   const pubHtml=pub.map((f,i)=>{
     const founder=i<3;
     const av=f.photo?'<img src="'+f.photo+'" alt="">':escHtml((f.name||'★')[0].toUpperCase());
     return '<div class="cz'+(founder?' founder':'')+'" data-pub="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(f.name)+'</div><div class="rl">'+(founder?'👑 ':'')+escHtml(f.role||'Citizen')+'</div></div>';
   }).join('');
-  const localHtml=local.map((c,i)=>{
-    const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||'★');
-    return '<div class="cz" data-loc="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role)+' · pending</div></div>';
+  const sharedHtml=shared.map((c,i)=>{
+    const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||(c.name||'★')[0].toUpperCase());
+    return '<div class="cz" data-sh="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role||'Citizen')+'</div></div>';
   }).join('');
-  wall.innerHTML=pubHtml+localHtml;
+  wall.innerHTML=pubHtml+sharedHtml;
   wall.querySelectorAll('.cz').forEach(el=>{
     el.addEventListener('click',()=>{
       if(el.dataset.pub!==undefined) openCitizen(pub[+el.dataset.pub], +el.dataset.pub<3);
-      else openCitizen(local[+el.dataset.loc], false);
+      else openCitizen(shared[+el.dataset.sh], false);
     });
   });
 }
@@ -153,9 +164,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     co.observe(el);
   });
 
-  // real population: public database + citizens registered on this device
+  // real population: same shared registry on every device
   const pop=document.getElementById('livePop');
-  if(pop) loadPublicCitizens().then(pub=>{ pop.textContent=(pub.length+Registry.count()).toLocaleString(); });
+  if(pop) Promise.all([loadPublicCitizens(),loadSharedCitizens()]).then(([pub,shared])=>{
+    pop.textContent=(pub.length+shared.length).toLocaleString();
+  });
 
   // Elizapolis clock
   const clk=document.getElementById('clock');

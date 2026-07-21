@@ -38,7 +38,7 @@
 <section class="hero" style="padding:3.8rem 1.25rem 3rem">
   <div class="aurora"></div>
   <h1>Become an <span class="shine">Elizaurian</span></h1>
-  <p class="sub">Fill the form, take the oath, get your photo ID instantly. Everything stays on your device.</p>
+  <p class="sub">Fill the form, take the oath, get your photo ID instantly. Your citizenship appears on the worldwide wall.</p>
 </section>
 
 <main>
@@ -143,10 +143,15 @@ document.addEventListener('DOMContentLoaded',function(){
     var inRegistry=currentRec.at && Registry.all().some(function(c){ return c.at===currentRec.at; });
     if(!inRegistry){ toast('👑 Official state records can only be removed by the President.'); return; }
     if(!confirm('Delete the ID of '+currentRec.name+'? This cannot be undone.')) return;
+    var delNum=currentRec.num;
     Registry.remove(function(c){ return c.at===currentRec.at; });
     currentRec=null;
     document.getElementById('passport').classList.remove('show');
-    renderWall(); toast('🗑️ ID deleted. Citizenship revoked.');
+    loadSharedCitizens().then(function(list){
+      var next=list.filter(function(c){ return c.num!==delNum; });
+      if(next.length!==list.length) return saveSharedCitizens(next);
+    }).catch(function(){}).then(function(){ renderWall(); });
+    toast('🗑️ ID deleted. Citizenship revoked.');
   });
 });
 
@@ -245,7 +250,27 @@ function issueID(role){
   try{ Registry.add(rec); }
   catch(err){ try{ rec.photo=null; Registry.add(rec); }catch(e2){} }
   currentRec=rec;
-  renderWall();
+
+  // 3) Publish to the shared worldwide wall (same on every device)
+  var thumb=null;
+  if(photoData){
+    try{
+      var im=document.createElement('canvas'), src=document.getElementById('prev');
+      var sc=Math.min(1, 96/Math.max(src.naturalWidth||96, src.naturalHeight||96));
+      im.width=Math.round((src.naturalWidth||96)*sc); im.height=Math.round((src.naturalHeight||96)*sc);
+      im.getContext('2d').drawImage(src,0,0,im.width,im.height);
+      thumb=im.toDataURL('image/jpeg',0.6);
+    }catch(e){}
+  }
+  var pubRec={ name:rec.name, role:role, origin:rec.origin, num:num,
+               initial:rec.initial, photo:thumb, date:new Date().toLocaleDateString(), at:rec.at };
+  loadSharedCitizens().then(function(list){
+    list.unshift(pubRec);
+    return saveSharedCitizens(list.slice(0,300)).catch(function(){
+      pubRec.photo=null; return saveSharedCitizens(list.slice(0,300));
+    });
+  }).then(function(){ renderWall(); })
+    .catch(function(){ toast('⚠️ Saved on this device, but the worldwide wall could not be reached.'); renderWall(); });
 
   var p=document.getElementById('passport'); p.classList.add('show');
   confetti(); toast('🎉 Welcome, citizen of Elizauria!');
@@ -276,22 +301,25 @@ function showSavedID(rec){
   var p=document.getElementById('passport'); p.classList.add('show');
   p.scrollIntoView({behavior:'smooth',block:'center'});
 }
-// ---- Remove yourself from the wall by name ----
+// ---- Remove yourself from the wall by name (worldwide) ----
 document.getElementById('removeForm').addEventListener('submit',function(e){
   e.preventDefault();
+  var form=this;
   var q=document.getElementById('removeName').value.trim().toLowerCase();
-  var matches=Registry.all().filter(function(c){ return (c.name||'').toLowerCase()===q; });
-  if(matches.length){
-    if(!confirm('Remove '+matches[0].name+' from the Wall of Citizens? This cannot be undone.')) return;
+  Promise.all([loadPublicCitizens(),loadSharedCitizens()]).then(function(res){
+    var pub=res[0], shared=res[1];
+    if(pub.some(function(c){ return (c.name||'').toLowerCase()===q; })){
+      toast('👑 Official citizens can only be removed by the President.'); return;
+    }
+    var found=shared.find(function(c){ return (c.name||'').toLowerCase()===q; });
+    var localFound=Registry.all().some(function(c){ return (c.name||'').toLowerCase()===q; });
+    if(!found && !localFound){ toast('No citizen with that name on the wall.'); return; }
+    if(!confirm('Remove '+((found&&found.name)||q)+' from the Wall of Citizens everywhere? This cannot be undone.')) return;
     Registry.remove(function(c){ return (c.name||'').toLowerCase()===q; });
-    renderWall(); this.reset(); toast('🗑️ Removed from the wall. Farewell, citizen.');
-    return;
-  }
-  loadPublicCitizens().then(function(pub){
-    if(pub.some(function(c){ return (c.name||'').toLowerCase()===q; }))
-      toast('👑 Official citizens can only be removed by the President.');
-    else
-      toast('No citizen with that name on this device.');
+    var next=shared.filter(function(c){ return (c.name||'').toLowerCase()!==q; });
+    var done=function(){ renderWall(); form.reset(); toast('🗑️ Removed from the wall. Farewell, citizen.'); };
+    if(next.length!==shared.length) saveSharedCitizens(next).then(done).catch(function(){ toast('⚠️ Could not reach the worldwide wall. Try again.'); });
+    else done();
   });
 });
 
