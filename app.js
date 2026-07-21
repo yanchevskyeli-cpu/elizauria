@@ -160,16 +160,57 @@ async function loadPublicCitizens(){
   return PUBLIC_CITIZENS;
 }
 
-/* Shared worldwide citizen registry (same list on every device) */
+/* Shared worldwide citizen registry (same list on every device).
+   Backed by textdb, but mirrored to a local cache + permanent personal store
+   so citizens never vanish if the shared service drops data. */
 const CITIZENS_URL='https://textdb.dev/api/data/elizauria-citizens-9a4f7d21-6c3e-45b8-8f1a-2d7e9b0c4a55';
-function loadSharedCitizens(){
+function czKey(c){ return c && (c.num || ((c.name||'')+'|'+(c.role||''))); }
+function mergeCitizens(a,b){
+  var map={}, order=[];
+  (a||[]).concat(b||[]).forEach(function(c){ if(!c) return; var k=czKey(c); if(!(k in map)){ map[k]=c; order.push(k); } });
+  return order.map(function(k){ return map[k]; });
+}
+function czCacheGet(){ try{ return JSON.parse(localStorage.getItem('elz_citizens_cache'))||[]; }catch(e){ return []; } }
+function czCacheSet(list){ try{ localStorage.setItem('elz_citizens_cache', JSON.stringify((list||[]).slice(0,1000))); }catch(e){} }
+function myCitizens(){ try{ return JSON.parse(localStorage.getItem('elz_my_citizens'))||[]; }catch(e){ return []; } }
+function rememberMyCitizen(c){ try{ var m=mergeCitizens([c], myCitizens()); localStorage.setItem('elz_my_citizens', JSON.stringify(m.slice(0,200))); }catch(e){} }
+
+// raw remote fetch (may be empty if the service hiccups)
+function fetchRemoteCitizens(){
   return fetch(CITIZENS_URL,{headers:{'accept':'application/json'},cache:'no-store'})
     .then(r=>r.text())
     .then(t=>{ try{ const d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
     .catch(()=>[]);
 }
-function saveSharedCitizens(list){
-  return fetch(CITIZENS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list)});
+// what the wall should show right now, offline-safe = my posts + cache
+function localSharedCitizens(){ return mergeCitizens(myCitizens(), czCacheGet()); }
+// fetch + merge everything, refresh cache
+function loadSharedCitizens(){
+  return fetchRemoteCitizens().then(function(remote){
+    var merged=mergeCitizens(mergeCitizens(myCitizens(), remote), czCacheGet());
+    czCacheSet(merged);
+    return merged;
+  });
+}
+// add a new citizen everywhere (personal + cache + shared), never lose it
+function addSharedCitizen(rec){
+  rememberMyCitizen(rec);
+  czCacheSet(mergeCitizens([rec], czCacheGet()));
+  return fetchRemoteCitizens().then(function(remote){
+    var merged=mergeCitizens([rec], mergeCitizens(remote, czCacheGet()));
+    czCacheSet(merged);
+    return fetch(CITIZENS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(merged.slice(0,1000))}).catch(function(){});
+  }).catch(function(){});
+}
+// remove citizens matching a predicate from personal + cache + shared
+function removeSharedCitizen(pred){
+  try{ localStorage.setItem('elz_my_citizens', JSON.stringify(myCitizens().filter(function(c){ return !pred(c); }))); }catch(e){}
+  czCacheSet(czCacheGet().filter(function(c){ return !pred(c); }));
+  return fetchRemoteCitizens().then(function(remote){
+    var merged=mergeCitizens(remote, czCacheGet()).filter(function(c){ return !pred(c); });
+    czCacheSet(merged);
+    return fetch(CITIZENS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(merged.slice(0,1000))}).catch(function(){});
+  }).catch(function(){});
 }
 function escHtml(s){ return String(s).replace(/</g,"&lt;"); }
 
@@ -198,24 +239,28 @@ function openCitizen(c,founder){
 
 async function renderCitizenWall(wallId,countId){
   const wall=document.getElementById(wallId); if(!wall) return;
-  const [pub,shared]=await Promise.all([loadPublicCitizens(),loadSharedCitizens()]);
-  if(countId){ const c=document.getElementById(countId); if(c) c.textContent=(pub.length+shared.length).toLocaleString(); }
-  const pubHtml=pub.map((f,i)=>{
-    const founder=i<3;
-    const av=f.photo?'<img src="'+f.photo+'" alt="">':escHtml((f.name||'★')[0].toUpperCase());
-    return '<div class="cz'+(founder?' founder':'')+'" data-pub="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(f.name)+'</div><div class="rl">'+(founder?'👑 ':'')+escHtml(f.role||'Citizen')+'</div></div>';
-  }).join('');
-  const sharedHtml=shared.map((c,i)=>{
-    const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||(c.name||'★')[0].toUpperCase());
-    return '<div class="cz" data-sh="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role||'Citizen')+'</div></div>';
-  }).join('');
-  wall.innerHTML=pubHtml+sharedHtml;
-  wall.querySelectorAll('.cz').forEach(el=>{
-    el.addEventListener('click',()=>{
-      if(el.dataset.pub!==undefined) openCitizen(pub[+el.dataset.pub], +el.dataset.pub<3);
-      else openCitizen(shared[+el.dataset.sh], false);
+  const pub=await loadPublicCitizens();
+  function paint(shared){
+    if(countId){ const c=document.getElementById(countId); if(c) c.textContent=(pub.length+shared.length).toLocaleString(); }
+    const pubHtml=pub.map((f,i)=>{
+      const founder=i<3;
+      const av=f.photo?'<img src="'+f.photo+'" alt="">':escHtml((f.name||'★')[0].toUpperCase());
+      return '<div class="cz'+(founder?' founder':'')+'" data-pub="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(f.name)+'</div><div class="rl">'+(founder?'👑 ':'')+escHtml(f.role||'Citizen')+'</div></div>';
+    }).join('');
+    const sharedHtml=shared.map((c,i)=>{
+      const av=c.photo?'<img src="'+c.photo+'" alt="">':escHtml(c.initial||(c.name||'★')[0].toUpperCase());
+      return '<div class="cz" data-sh="'+i+'"><div class="av">'+av+'</div><div class="nm">'+escHtml(c.name)+'</div><div class="rl">'+escHtml(c.role||'Citizen')+'</div></div>';
+    }).join('');
+    wall.innerHTML=pubHtml+sharedHtml;
+    wall.querySelectorAll('.cz').forEach(el=>{
+      el.addEventListener('click',()=>{
+        if(el.dataset.pub!==undefined) openCitizen(pub[+el.dataset.pub], +el.dataset.pub<3);
+        else openCitizen(shared[+el.dataset.sh], false);
+      });
     });
-  });
+  }
+  paint(localSharedCitizens());          // instant, from cache + my own
+  loadSharedCitizens().then(paint);      // then refresh with the merged worldwide list
 }
 
 /* ---- Small helpers ---- */
