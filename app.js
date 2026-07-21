@@ -312,43 +312,6 @@ function playAnthem(btn){
     if(btn){ btn.classList.add('playing'); setTimeout(function(){ btn.classList.remove('playing'); }, t*1000+250); }
   }catch(e){ toast('Hum it yourself: Rise, Elizauria!'); }
 }
-/* ---- Ambient background soundscape (gentle looping pad, toggle on/off) ---- */
-var Ambient={
-  on:false, master:null, nodes:[],
-  start(){
-    if(this.on) return;
-    try{
-      var ac=audioCtx();
-      var master=ac.createGain(); master.gain.value=0.0001; master.connect(ac.destination);
-      var filter=ac.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=700; filter.Q.value=0.6; filter.connect(master);
-      // soft C-major pad
-      var voices=[130.81,196.00,261.63,329.63];
-      var oscs=voices.map(function(f,idx){
-        var o=ac.createOscillator(); o.type= idx<2?'sine':'triangle'; o.frequency.value=f;
-        o.detune.value=(idx%2?4:-4); // slight chorus
-        var g=ac.createGain(); g.gain.value=0.22;
-        o.connect(g); g.connect(filter); o.start(); return o;
-      });
-      // slow swell so it breathes
-      var lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.05;
-      var lg=ac.createGain(); lg.gain.value=0.025; lfo.connect(lg); lg.connect(master.gain); lfo.start();
-      // gentle wind-like shimmer
-      var shimmer=ac.createOscillator(); shimmer.type='sine'; shimmer.frequency.value=523.25;
-      var sg=ac.createGain(); sg.gain.value=0.04; shimmer.connect(sg); sg.connect(filter); shimmer.start();
-      master.gain.setTargetAtTime(0.05, ac.currentTime, 1.2); // fade in
-      this.master=master; this.nodes=oscs.concat([lfo,shimmer]); this.on=true;
-    }catch(e){}
-  },
-  stop(){
-    if(!this.on) return; this.on=false;
-    try{
-      var ac=audioCtx(), self=this;
-      this.master.gain.setTargetAtTime(0.0001, ac.currentTime, 0.4);
-      setTimeout(function(){ self.nodes.forEach(function(n){ try{n.stop();}catch(e){}}); self.nodes=[]; },700);
-    }catch(e){}
-  },
-  toggle(){ this.on ? this.stop() : this.start(); try{ localStorage.setItem('elz_ambient', this.on?'1':'0'); }catch(e){} return this.on; }
-};
 function bark(){ try{ beep(300,0.12,'sawtooth',0,0.25); beep(230,0.16,'sawtooth',0.12,0.22); }catch(e){} }
 function thud(){ try{ beep(90,0.14,'square',0,0.32); beep(60,0.2,'sine',0.02,0.25);}catch(e){} }
 
@@ -416,31 +379,4 @@ document.addEventListener('DOMContentLoaded',()=>{
   // anthem buttons
   document.querySelectorAll('[data-anthem]').forEach(b=>b.addEventListener('click',()=>playAnthem(b)));
 
-  // Background music by Creo (official YouTube playlist embed), floating bottom-left
-  var CREO_PLAYLIST='PLbIk8FMaB2IvKsCferyStuvkciIzvkPVY'; // Creo — official "MUSIC" playlist
-  var musicBtn=document.createElement('button'); musicBtn.className='ambient-btn'; musicBtn.title='Background music by Creo';
-  musicBtn.innerHTML='🎵'; document.body.appendChild(musicBtn);
-  var player=null;
-  function openMusic(){
-    if(player) return;
-    player=document.createElement('div'); player.className='creo-player';
-    player.innerHTML='<div class="creo-head"><span>🎶 Music by <b>Creo</b></span><button class="creo-close" title="Close">✕</button></div>'
-      +'<iframe width="300" height="169" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen '
-      +'src="https://www.youtube.com/embed/videoseries?list='+CREO_PLAYLIST+'&autoplay=1&rel=0"></iframe>';
-    document.body.appendChild(player);
-    player.querySelector('.creo-close').addEventListener('click',closeMusic);
-    musicBtn.classList.add('on'); musicBtn.innerHTML='🎶';
-    try{ localStorage.setItem('elz_music','1'); }catch(e){}
-  }
-  function closeMusic(){
-    if(player){ player.remove(); player=null; }
-    musicBtn.classList.remove('on'); musicBtn.innerHTML='🎵';
-    try{ localStorage.setItem('elz_music','0'); }catch(e){}
-  }
-  musicBtn.addEventListener('click',function(){ player?closeMusic():openMusic(); });
-  // reopen on first tap if it was on before (browsers block autoplay until a gesture)
-  try{ if(localStorage.getItem('elz_music')==='1'){
-    var reopen=function(){ openMusic(); removeEventListener('pointerdown',reopen); };
-    addEventListener('pointerdown',reopen,{once:true});
-  } }catch(e){}
 });
