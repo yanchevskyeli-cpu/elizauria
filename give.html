@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Work — Elizauria</title>
-<meta name="description" content="Choose a profession and earn points for your bank balance.">
+<title>Give Money — Elizauria</title>
+<meta name="description" content="Presidential treasury: grant Golden Stars to a citizen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div class="ribbon">Ministry of Labour · Earn Your Living</div>
+<div class="ribbon">Presidential Treasury · By Order of the President</div>
 
 <header class="site">
   <div class="nav-inner">
@@ -29,7 +29,7 @@
       <a href="passport.html">Passport</a>
       <a href="tourism.html">Visit</a>
       <a href="games.html">Games</a>
-      <a href="work.html" class="active">Work</a>
+      <a href="work.html">Work</a>
       <a href="bank.html">Bank</a>
       <a href="shop.html">Shop</a>
       <a href="news.html">News</a>
@@ -40,15 +40,26 @@
 
 <section class="hero" style="padding:3.8rem 1.25rem 3rem">
   <div class="aurora"></div>
-  <h1>Go to <span class="shine">Work</span></h1>
-  <p class="sub">Pick a profession, play its job, and every point you earn goes straight into your bank balance.</p>
-  <div class="cta-row"><a href="bank.html" class="btn ghost">💰 Your Balance: <strong id="wBal" style="margin-left:.4rem">0</strong></a></div>
+  <h1>Give <span class="shine">Money</span></h1>
+  <p class="sub">The President may grant Golden Stars to any citizen of Elizauria.</p>
 </section>
 
 <main>
   <section class="reveal">
-    <div class="section-head"><div class="kick">Ministry of Labour</div><h2 class="section-title">Choose Your Profession</h2><p class="section-lead">Tap “Work this job” to play and earn points.</p></div>
-    <div class="grid" id="jobGrid"></div>
+    <div class="form-card" id="giveCard">
+      <form id="giveForm">
+        <div class="field"><label for="toName">Who do you want to give money to?</label><input id="toName" type="text" placeholder="Citizen's full name" required></div>
+        <div class="field"><label for="amount">How much?</label><input id="amount" type="number" min="1" placeholder="Number of stars ★" required></div>
+        <button type="submit" class="btn gold" style="width:100%;justify-content:center">💸 Send the Stars</button>
+      </form>
+      <p style="margin-top:.9rem;font-size:.8rem;color:var(--muted)">The stars arrive the next time that citizen opens the site on their account, on any device.</p>
+    </div>
+    <div class="form-card" id="denyCard" style="display:none;text-align:center">
+      <div style="font-size:3rem">🔒</div>
+      <h2 style="font-family:var(--serif);color:var(--navy);margin:.4rem 0">Presidents Only</h2>
+      <p style="color:var(--muted)">Only the President may grant money from the treasury.</p>
+      <a href="home.html" class="btn gold" style="margin-top:.8rem">Back Home</a>
+    </div>
   </section>
 </main>
 
@@ -64,11 +75,23 @@
 <script src="app.js?v=15"></script>
 <script src="i18n.js?v=15"></script>
 <script>
-document.getElementById('wBal').textContent=Bank.display();
-document.getElementById('jobGrid').innerHTML=PROFESSIONS.map(function(p){
-  return '<div class="job-card"><span class="jico">'+p.icon+'</span><h3>'+p.name+'</h3><p>'+p.desc+'</p>'
-    +'<a class="btn gold sm" href="games.html?job='+p.id+'">▶ Work this job</a></div>';
-}).join('');
+if(!isPresident()){
+  document.getElementById('giveCard').style.display='none';
+  document.getElementById('denyCard').style.display='';
+} else {
+  document.getElementById('giveForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=document.getElementById('toName').value.trim();
+    var amount=Math.round(+document.getElementById('amount').value||0);
+    if(!name){ toast('Type a citizen\'s name.'); return; }
+    if(amount<1){ toast('Enter an amount of at least 1 ★.'); return; }
+    var form=this;
+    giveGift(name, amount).then(function(ok){
+      if(ok){ confetti(); toast('💸 '+amount.toLocaleString()+' ★ granted to '+name+'!'); form.reset(); }
+      else toast('⚠️ Could not send. Check your internet and try again.');
+    });
+  });
+}
 </script>
 </body>
 </html>

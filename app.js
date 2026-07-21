@@ -25,8 +25,43 @@ var Accounts={
   key:'elz_accounts',
   all(){ try{ return JSON.parse(localStorage.getItem(this.key))||[]; }catch(e){ return []; } },
   add(a){ var l=this.all(); l.push(a); try{ localStorage.setItem(this.key, JSON.stringify(l)); }catch(e){} },
-  find(id){ return this.all().filter(function(a){ return a.id===id; })[0]; }
+  find(id){ return this.all().filter(function(a){ return a.id===id; })[0]; },
+  remove(id){ try{ localStorage.setItem(this.key, JSON.stringify(this.all().filter(function(a){ return a.id!==id; }))); }catch(e){} }
 };
+function isPresident(){ var a=Account.get(); return !!(a && (a.president || a.id===PRESIDENT_ACCOUNT.id)); }
+
+/* ---- Presidential gifts: money sent to a citizen, delivered on any device ---- */
+var GIFTS_URL='https://textdb.dev/api/data/elizauria-gifts-4d2f8a17-b6c3-49e1-9a52-8e0d3c7f1b6a';
+function fetchGifts(){
+  return fetch(GIFTS_URL,{headers:{'accept':'application/json'},cache:'no-store'})
+    .then(function(r){return r.text();})
+    .then(function(t){ try{ var d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
+    .catch(function(){ return []; });
+}
+function giveGift(name,amount){
+  return fetchGifts().then(function(list){
+    list.unshift({ id:'g'+Date.now()+Math.floor(Math.random()*9999), to:String(name).trim(), amount:Math.round(+amount||0), at:Date.now() });
+    return fetch(GIFTS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list.slice(0,500))})
+      .then(function(){ return true; }).catch(function(){ return false; });
+  });
+}
+// A logged-in citizen claims any gifts addressed to their name (once each)
+function claimGifts(){
+  var acct=Account.get(); if(!acct || !acct.name || acct.president) return Promise.resolve(0);
+  var myName=acct.name.trim().toLowerCase();
+  var claimed; try{ claimed=JSON.parse(localStorage.getItem('elz_claimed_gifts'))||[]; }catch(e){ claimed=[]; }
+  return fetchGifts().then(function(gifts){
+    var added=0;
+    gifts.forEach(function(g){
+      if(g && g.id && String(g.to||'').trim().toLowerCase()===myName && claimed.indexOf(g.id)<0){
+        Bank.add(g.amount); claimed.push(g.id); added+=(+g.amount||0);
+      }
+    });
+    if(added>0){ try{ localStorage.setItem('elz_claimed_gifts', JSON.stringify(claimed)); }catch(e){}
+      if(typeof toast==='function') toast('💰 You received '+added.toLocaleString()+' ★ from the President!'); }
+    return added;
+  }).catch(function(){ return 0; });
+}
 
 /* ---- Professions (Work → minigames) ---- */
 var PROFESSIONS=[
@@ -379,4 +414,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   // anthem buttons
   document.querySelectorAll('[data-anthem]').forEach(b=>b.addEventListener('click',()=>playAnthem(b)));
 
+  // deliver any presidential gifts to the logged-in citizen
+  try{ claimGifts(); }catch(e){}
 });
