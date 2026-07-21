@@ -20,6 +20,27 @@ var Account={
 var PRESIDENT_ACCOUNT={ id:'acct-president-eli', name:'Eli Yanchevsky', president:true };
 var PRESIDENT_PASSWORD='Eli24032015!';
 
+/* ---- Professions (Work → minigames) ---- */
+var PROFESSIONS=[
+  {id:'cashier',   icon:'🛒', name:'Cashier',      desc:'Scan the groceries, dodge the bombs!',      target:'🥫', bad:'💣'},
+  {id:'financier', icon:'💼', name:'Financier',    desc:'Grab gold coins, avoid the market crashes!',target:'🪙', bad:'📉'},
+  {id:'astronaut', icon:'🚀', name:'Astronaut',    desc:'Collect stars, avoid the asteroids!',       target:'⭐', bad:'☄️'},
+  {id:'engineer',  icon:'🔧', name:'Engineer',     desc:'Tighten the gears, avoid the sparks!',      target:'⚙️', bad:'🔥'},
+  {id:'teacher',   icon:'📚', name:'Teacher',      desc:'Solve as many problems as you can!',        math:true},
+  {id:'pilot',     icon:'✈️', name:'Pilot',        desc:'Hit the runways, avoid the storms!',        target:'🛬', bad:'🌩️'},
+  {id:'doctor',    icon:'🩺', name:'Doctor',       desc:'Give the medicine, avoid the germs!',       target:'💊', bad:'🦠'},
+  {id:'chef',      icon:'👨‍🍳', name:'Chef',        desc:'Serve the dishes, dodge the flames!',       target:'🍔', bad:'🔥'},
+  {id:'farmer',    icon:'🚜', name:'Farmer',       desc:'Harvest the crops, avoid the crows!',       target:'🌽', bad:'🐦'},
+  {id:'firefighter',icon:'🧯',name:'Firefighter',  desc:'Put out fires, don\'t soak the cat!',        target:'🔥', bad:'🐱'}
+];
+
+/* ---- Bank (points per account) ---- */
+var Bank={
+  key(){ return 'elz_balance_'+Account.ownerId(); },
+  get(){ try{ return Math.max(0, parseInt(localStorage.getItem(this.key()),10)||0); }catch(e){ return 0; } },
+  add(n){ var v=this.get()+Math.round(+n||0); if(v<0)v=0; try{ localStorage.setItem(this.key(), v); }catch(e){} return v; }
+};
+
 /* ---- Citizen registry (saved in this browser) ---- */
 const Registry = {
   key: "elz_citizens",

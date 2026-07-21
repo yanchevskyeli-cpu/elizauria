@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leaders — Elizauria</title>
-<meta name="description" content="The President and Prime Minister of Elizauria.">
+<title>Work — Elizauria</title>
+<meta name="description" content="Choose a profession and earn points for your bank balance.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div class="ribbon">Office of the Founders · The Leaders of Elizauria</div>
+<div class="ribbon">Ministry of Labour · Earn Your Living</div>
 
 <header class="site">
   <div class="nav-inner">
@@ -24,12 +24,12 @@
     <button class="nav-toggle" aria-label="Menu">&#9776;</button>
     <nav class="main">
       <a href="home.html">Home</a>
-      <a href="founders.html" class="active">Leaders</a>
+      <a href="founders.html">Leaders</a>
       <a href="citizenship.html">Citizenship</a>
       <a href="passport.html">Passport</a>
       <a href="tourism.html">Visit</a>
       <a href="games.html">Games</a>
-      <a href="work.html">Work</a>
+      <a href="work.html" class="active">Work</a>
       <a href="bank.html">Bank</a>
       <a href="news.html">News</a>
       <a href="index.html" title="Language">🌐</a>
@@ -39,50 +39,16 @@
 
 <section class="hero" style="padding:3.8rem 1.25rem 3rem">
   <div class="aurora"></div>
-  <h1>The <span class="shine">Leaders</span></h1>
-  <p class="sub">Two brothers. One country. Zero doubt.</p>
+  <h1>Go to <span class="shine">Work</span></h1>
+  <p class="sub">Pick a profession, play its job, and every point you earn goes straight into your bank balance.</p>
+  <div class="cta-row"><a href="bank.html" class="btn ghost">💰 Your Balance: <strong id="wBal" style="margin-left:.4rem">0</strong></a></div>
 </section>
 
 <main>
-
   <section class="reveal">
-    <div class="split">
-      <div class="photo"><img src="president.jpg" alt="The President of Elizauria"></div>
-      <div>
-        <span class="tag">President · Founder</span>
-        <h2 style="font-family:var(--serif);color:var(--navy);font-size:2rem">Eli Yanchevsky</h2>
-        <p style="color:var(--muted);margin:.7rem 0">The kid who started it all. When fame wouldn't come to him, he founded a country instead: designed the passport, the visa, the ID, the license, and sent the email that made it real.</p>
-      </div>
-    </div>
+    <div class="section-head"><div class="kick">Ministry of Labour</div><h2 class="section-title">Choose Your Profession</h2><p class="section-lead">Tap “Work this job” to play and earn points.</p></div>
+    <div class="grid" id="jobGrid"></div>
   </section>
-
-  <section class="reveal">
-    <div class="split">
-      <div>
-        <span class="tag">Prime Minister · Co-Founder</span>
-        <h2 style="font-family:var(--serif);color:var(--navy);font-size:2rem">Netanel Yanchevsky</h2>
-        <p style="color:var(--muted);margin:.7rem 0">The brother who got the invitation email, and said yes. With one reply, a nation of one became a nation of two. Every country needs a first believer; he was ours.</p>
-      </div>
-      <div class="photo" style="order:-1"><img src="minister.jpg" alt="The Prime Minister of Elizauria"></div>
-    </div>
-  </section>
-
-  <section class="reveal">
-    <div class="grid">
-      <div class="card reveal"><span class="ico">💭</span><h3>Dream Loudly</h3><p>No ambition is too big to say out loud.</p></div>
-      <div class="card reveal"><span class="ico">🤝</span><h3>Build Together</h3><p>Founded by two, grown one believer at a time.</p></div>
-      <div class="card reveal"><span class="ico">🖋️</span><h3>Make It Official</h3><p>A dream stamped and signed is halfway real.</p></div>
-    </div>
-  </section>
-
-  <section class="reveal">
-    <div class="parchment cta-band">
-      <h3>Accept the Invitation</h3>
-      <p>The email the brothers once sent each other is now open to you.</p>
-      <a href="citizenship.html" class="btn gold" style="margin-top:.6rem">🪪 Become a Citizen</a>
-    </div>
-  </section>
-
 </main>
 
 <footer class="site">
@@ -96,5 +62,12 @@
 
 <script src="app.js"></script>
 <script src="i18n.js"></script>
+<script>
+document.getElementById('wBal').textContent=Bank.get().toLocaleString();
+document.getElementById('jobGrid').innerHTML=PROFESSIONS.map(function(p){
+  return '<div class="job-card"><span class="jico">'+p.icon+'</span><h3>'+p.name+'</h3><p>'+p.desc+'</p>'
+    +'<a class="btn gold sm" href="games.html?job='+p.id+'">▶ Work this job</a></div>';
+}).join('');
+</script>
 </body>
 </html>

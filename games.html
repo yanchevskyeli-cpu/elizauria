@@ -29,6 +29,8 @@
       <a href="passport.html">Passport</a>
       <a href="tourism.html">Visit</a>
       <a href="games.html" class="active">Games</a>
+      <a href="work.html">Work</a>
+      <a href="bank.html">Bank</a>
       <a href="news.html">News</a>
       <a href="index.html" title="Language">🌐</a>
     </nav>
@@ -83,6 +85,12 @@
     </div>
   </section>
 
+  <!-- PROFESSION JOBS -->
+  <section class="reveal" id="jobs">
+    <div class="section-head"><div class="kick">Ministry of Labour</div><h2 class="section-title">Job Minigames</h2><p class="section-lead">Every point you score is banked into your account. <a href="bank.html" style="color:var(--gold-deep);font-weight:700">Balance: <span id="jobBal">0</span> ★</a></p></div>
+    <div id="proArena" style="display:grid;gap:1.4rem"></div>
+  </section>
+
   <section class="reveal">
     <div class="parchment cta-band">
       <h3>More Games in the Nation</h3>
@@ -98,7 +106,7 @@
   <div class="aurora"></div>
   <div class="foot-inner">
     <div><h4>Elizauria</h4><p style="font-size:.9rem;color:#9aa4c4">Founded 2026. "From a bedroom, a nation."</p></div>
-    <div><h4>Explore</h4><a href="founders.html">Leaders</a><a href="citizenship.html">Citizenship</a><a href="passport.html">Passport</a><a href="tourism.html">Visit</a><a href="games.html">Games</a><a href="news.html">News</a></div>
+    <div><h4>Explore</h4><a href="founders.html">Leaders</a><a href="citizenship.html">Citizenship</a><a href="passport.html">Passport</a><a href="tourism.html">Visit</a><a href="games.html">Games</a><a href="work.html">Work</a><a href="bank.html">Bank</a><a href="news.html">News</a></div>
   </div>
   <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
 </footer>
@@ -238,6 +246,107 @@
     });
   }
   btn.addEventListener('click',function(){ i=0; right=0; btn.style.display='none'; show(); });
+})();
+
+/* ================= PROFESSION JOB MINIGAMES ================= */
+(function(){
+  var arena=document.getElementById('proArena');
+  function updBal(){ var b=Bank.get().toLocaleString(); document.getElementById('jobBal').textContent=b; }
+  updBal();
+
+  arena.innerHTML=PROFESSIONS.map(function(p){
+    var best=+(localStorage.getItem('elz_job_'+p.id)||0);
+    return '<div class="game-panel" id="job-'+p.id+'">'
+      +'<h3>'+p.icon+' '+p.name+'</h3>'
+      +'<p class="desc">'+p.desc+'</p>'
+      +'<div class="game-hud">'
+      +'<div><div class="v" id="'+p.id+'Score">0</div><div class="k">Points</div></div>'
+      +'<div><div class="v" id="'+p.id+'Time">20</div><div class="k">Seconds</div></div>'
+      +'<div><div class="v" id="'+p.id+'Best">'+best+'</div><div class="k">Best</div></div>'
+      +'</div>'
+      +(p.math
+        ? '<div id="'+p.id+'Quiz" style="max-width:420px;margin:0 auto"></div>'
+        : '<div class="stamp-area" id="'+p.id+'Area"></div>')
+      +'<button class="btn gold" id="'+p.id+'Start" style="margin-top:1rem">▶ Start Working</button>'
+      +'</div>';
+  }).join('');
+
+  PROFESSIONS.forEach(function(p){ p.math ? setupMath(p) : setupTap(p); });
+
+  function finish(p,score){
+    var bestKey='elz_job_'+p.id, best=+(localStorage.getItem(bestKey)||0);
+    if(score>best){ localStorage.setItem(bestKey,score); document.getElementById(p.id+'Best').textContent=score; }
+    if(score>0){ Bank.add(score); updBal(); confetti(); toast('💰 +'+score+' banked! You earned it as a '+p.name+'.'); }
+    else toast('No points this time. Try again!');
+  }
+
+  /* ---- Tap game (most jobs) ---- */
+  function setupTap(p){
+    var area=document.getElementById(p.id+'Area');
+    var startBtn=document.getElementById(p.id+'Start');
+    var score=0,time=20,timer=null,spawner=null,playing=false;
+    function spawn(){
+      var bad=Math.random()<0.25;
+      var el=document.createElement('div'); el.className='tap-item'; el.textContent=bad?p.bad:p.target;
+      var w=area.clientWidth-46, h=area.clientHeight-46;
+      el.style.left=Math.random()*Math.max(10,w)+'px';
+      el.style.top=Math.random()*Math.max(10,h)+'px';
+      var used=false;
+      el.addEventListener('pointerdown',function(ev){
+        ev.preventDefault(); if(used||!playing) return; used=true;
+        if(bad){ score=Math.max(0,score-1); thud(); el.textContent='✖'; }
+        else { score++; beep(680+score*6,0.09,'triangle',0,0.15); el.textContent='✅'; }
+        document.getElementById(p.id+'Score').textContent=score;
+        setTimeout(function(){el.remove();},140);
+      });
+      area.appendChild(el);
+      setTimeout(function(){ if(!used) el.remove(); },1300);
+    }
+    function end(){ playing=false; clearInterval(timer); clearInterval(spawner); area.innerHTML=''; startBtn.style.display=''; finish(p,score); }
+    startBtn.addEventListener('click',function(){
+      score=0; time=20; playing=true;
+      document.getElementById(p.id+'Score').textContent=0;
+      document.getElementById(p.id+'Time').textContent=time;
+      startBtn.style.display='none'; area.innerHTML='';
+      timer=setInterval(function(){ time--; document.getElementById(p.id+'Time').textContent=time; if(time<=0) end(); },1000);
+      spawner=setInterval(spawn,650);
+    });
+  }
+
+  /* ---- Math game (teacher) ---- */
+  function setupMath(p){
+    var box=document.getElementById(p.id+'Quiz');
+    var startBtn=document.getElementById(p.id+'Start');
+    var score=0,time=25,timer=null,playing=false;
+    function newProblem(){
+      var a=1+Math.floor(Math.random()*10), b=1+Math.floor(Math.random()*10);
+      var op=Math.random()<0.5?'+':'×';
+      var ans= op==='+'? a+b : a*b;
+      var opts=[ans]; while(opts.length<4){ var d=ans+ (Math.floor(Math.random()*9)-4); if(d>=0 && opts.indexOf(d)<0) opts.push(d); }
+      opts.sort(function(){return Math.random()-0.5;});
+      box.innerHTML='<p style="font-weight:700;color:var(--navy);font-size:1.3rem;margin-bottom:.7rem">'+a+' '+op+' '+b+' = ?</p>'
+        +opts.map(function(o){return '<button class="quiz-opt" data-o="'+o+'">'+o+'</button>';}).join('');
+      box.querySelectorAll('.quiz-opt').forEach(function(btn){
+        btn.addEventListener('click',function(){
+          if(!playing) return;
+          if(+btn.getAttribute('data-o')===ans){ score++; document.getElementById(p.id+'Score').textContent=score; beep(700,0.1,'triangle',0,0.18); newProblem(); }
+          else { thud(); btn.classList.add('wrong'); }
+        });
+      });
+    }
+    function end(){ playing=false; clearInterval(timer); box.innerHTML=''; startBtn.style.display=''; finish(p,score); }
+    startBtn.addEventListener('click',function(){
+      score=0; time=25; playing=true;
+      document.getElementById(p.id+'Score').textContent=0;
+      document.getElementById(p.id+'Time').textContent=time;
+      startBtn.style.display='none'; newProblem();
+      timer=setInterval(function(){ time--; document.getElementById(p.id+'Time').textContent=time; if(time<=0) end(); },1000);
+    });
+  }
+
+  /* Deep-link from Work page: ?job=cashier scrolls to that game */
+  var m=location.search.match(/job=([a-z]+)/);
+  if(m){ var el=document.getElementById('job-'+m[1]); if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.boxShadow='0 0 0 3px var(--gold)'; setTimeout(function(){el.style.boxShadow='';},2000); } }
 })();
 </script>
 </body>
