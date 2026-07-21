@@ -286,9 +286,29 @@ function beep(freq,dur,type,when,vol){
 }
 function playAnthem(btn){
   try{
-    const notes=[392,440,494,523,587,523,494,440,392,330,392,494,587];
-    notes.forEach((f,i)=>beep(f,0.3,'triangle',i*0.30,0.18));
-    if(btn){ btn.classList.add('playing'); setTimeout(()=>btn.classList.remove('playing'),notes.length*300); }
+    var N={R:0,C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392,A4:440,B4:493.88,
+           C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,A5:880};
+    var BASS={C3:130.81,D3:146.83,E3:164.81,F3:174.61,G3:196,A3:220};
+    var beat=0.34;
+    // "Rise, Elizauria" — verse, then triumphant chorus (16 bars of 4 beats)
+    var mel=[
+      // Verse
+      ['G4',1],['G4',1],['C5',2],   ['B4',1],['A4',1],['G4',2],
+      ['A4',1],['A4',1],['D5',2],   ['C5',1],['B4',1],['A4',2],
+      ['G4',1],['A4',1],['B4',1],['C5',1],  ['D5',2],['C5',1],['B4',1],
+      ['A4',1],['B4',1],['C5',2],   ['G4',2],['R',2],
+      // Chorus
+      ['E5',1],['E5',1],['D5',1],['C5',1],  ['D5',1],['E5',1],['F5',2],
+      ['G5',2],['E5',1],['C5',1],   ['D5',3],['R',1],
+      ['E5',1],['D5',1],['C5',1],['D5',1],  ['E5',1],['F5',1],['G5',2],
+      ['C5',1],['D5',1],['E5',1],['F5',1],  ['G5',4]
+    ];
+    var chords=['C3','C3','F3','G3','C3','A3','F3','G3','C3','C3','F3','G3','C3','C3','G3','C3'];
+    var t=0;
+    mel.forEach(function(m){ var f=N[m[0]], d=m[1]*beat; if(f>0) beep(f, d*0.94, 'triangle', t, 0.17); t+=d; });
+    // bass note under each bar
+    for(var i=0;i<chords.length;i++){ beep(BASS[chords[i]]||130.81, beat*4*0.9, 'sine', i*beat*4, 0.11); }
+    if(btn){ btn.classList.add('playing'); setTimeout(function(){ btn.classList.remove('playing'); }, t*1000+250); }
   }catch(e){ toast('Hum it yourself: Rise, Elizauria!'); }
 }
 function bark(){ try{ beep(300,0.12,'sawtooth',0,0.25); beep(230,0.16,'sawtooth',0.12,0.22); }catch(e){} }
