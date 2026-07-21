@@ -20,6 +20,14 @@ var Account={
 var PRESIDENT_ACCOUNT={ id:'acct-president-eli', name:'Eli Yanchevsky', president:true };
 var PRESIDENT_PASSWORD='Eli24032015!';
 
+/* Saved citizen accounts on this device (so they can log back in) */
+var Accounts={
+  key:'elz_accounts',
+  all(){ try{ return JSON.parse(localStorage.getItem(this.key))||[]; }catch(e){ return []; } },
+  add(a){ var l=this.all(); l.push(a); try{ localStorage.setItem(this.key, JSON.stringify(l)); }catch(e){} },
+  find(id){ return this.all().filter(function(a){ return a.id===id; })[0]; }
+};
+
 /* ---- Professions (Work → minigames) ---- */
 var PROFESSIONS=[
   {id:'cashier',   icon:'🛒', name:'Cashier',      desc:'Scan the groceries, dodge the bombs!',      target:'🥫', bad:'💣'},

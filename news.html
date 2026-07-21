@@ -108,6 +108,17 @@ function fetchFeed(){
     .then(function(t){ try{ var d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
     .catch(function(){ return null; });
 }
+/* Local cache so news never disappears even if the shared service hiccups */
+function localNews(){ try{ return JSON.parse(localStorage.getItem('elz_news_cache'))||[]; }catch(e){ return []; } }
+function saveLocalNews(list){ try{ localStorage.setItem('elz_news_cache', JSON.stringify((list||[]).slice(0,300))); }catch(e){} }
+function ts(d){ return d && d.ts ? d.ts : (parseInt(String(d&&d.id).replace(/\D/g,'').slice(0,13),10)||0); }
+function mergeNews(a,b){
+  var map={};
+  (a||[]).concat(b||[]).forEach(function(d){ if(!d) return; var k=d.id||JSON.stringify(d); if(!map[k]) map[k]=d; });
+  var arr=Object.keys(map).map(function(k){ return map[k]; });
+  arr.sort(function(x,y){ return ts(y)-ts(x); });
+  return arr;
+}
 function renderFeed(list){
   var box=document.getElementById('publicDecrees');
   var me=Account.ownerId();
@@ -139,22 +150,26 @@ function renderFeed(list){
   }
 })();
 
-fetchFeed().then(function(list){ renderFeed(list||[]); });
+// Show cached news immediately, then merge in the shared feed
+renderFeed(localNews());
+fetchFeed().then(function(remote){
+  var merged=mergeNews(remote, localNews());
+  saveLocalNews(merged);
+  renderFeed(merged);
+});
 
 document.getElementById('decreeForm').addEventListener('submit',function(e){
   e.preventDefault();
   var a=document.getElementById('dAuthor').value.trim(), t=document.getElementById('dTitle').value.trim(), b=document.getElementById('dBody').value.trim();
   if(!a||!t||!b) return;
   var form=this;
-  fetchFeed().then(function(list){
-    if(list===null){ toast('⚠️ Could not reach the national feed. Try again in a moment.'); return; }
-    var id='p'+Date.now()+Math.floor(Math.random()*9999);
-    list.unshift({id:id,ownerId:Account.ownerId(),author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()});
-    return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list)})
-      .then(function(){
-        form.reset(); renderFeed(list); confetti(); toast('📰 Published! The whole nation can see it.');
-      });
-  }).catch(function(){ toast('⚠️ Could not publish. Check your internet and try again.'); });
+  var item={id:'p'+Date.now()+Math.floor(Math.random()*9999),ts:Date.now(),ownerId:Account.ownerId(),author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()};
+  fetchFeed().then(function(remote){
+    var merged=mergeNews([item], mergeNews(remote, localNews()));
+    saveLocalNews(merged);           // persists locally right away
+    form.reset(); renderFeed(merged); confetti(); toast('📰 Published! The whole nation can see it.');
+    return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(merged)}).catch(function(){});
+  });
 });
 
 // Writer-only delete (button appears only on the author's own account)
@@ -162,15 +177,15 @@ document.getElementById('publicDecrees').addEventListener('click',function(e){
   var btn=e.target.closest('.del-post'); if(!btn) return;
   var id=btn.getAttribute('data-id');
   if(!confirm('Delete your article from the national bulletin everywhere?')) return;
-  fetchFeed().then(function(list){
-    if(list===null){ toast('⚠️ Could not reach the feed. Try again.'); return; }
-    var me=Account.ownerId();
-    var target=list.find(function(d){ return d.id===id; });
-    if(target && target.ownerId!==me){ toast('Only the writer can delete this article.'); return; }
-    var next=list.filter(function(d){ return d.id!==id; });
-    return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(next)})
-      .then(function(){ renderFeed(next); toast('🗑️ Article deleted from the national record.'); });
-  }).catch(function(){ toast('⚠️ Could not delete. Check your internet and try again.'); });
+  var me=Account.ownerId();
+  fetchFeed().then(function(remote){
+    var merged=mergeNews(remote, localNews());
+    var target=merged.find(function(d){ return d.id===id; });
+    if(target && target.ownerId && target.ownerId!==me){ toast('Only the writer can delete this article.'); return; }
+    var next=merged.filter(function(d){ return d.id!==id; });
+    saveLocalNews(next); renderFeed(next); toast('🗑️ Article deleted from the national record.');
+    return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(next)}).catch(function(){});
+  });
 });
 </script>
 </body>

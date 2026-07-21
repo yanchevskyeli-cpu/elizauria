@@ -25,6 +25,8 @@
   .acc:hover .circle{box-shadow:0 18px 40px -12px var(--gold),0 0 0 8px rgba(224,185,77,.3)}
   .acc .circle img{width:100%;height:100%;object-fit:cover}
   .acc .plus{font-size:4.5rem;color:var(--gold-2);line-height:1;font-weight:300}
+  .acc .initial{font-family:var(--serif);font-size:3rem;color:var(--gold-2);font-weight:800}
+  .acc .lbl.small{font-size:.82rem;max-width:130px;line-height:1.2}
   .acc .lbl{color:#fff;font-weight:700;letter-spacing:.1em;font-size:.95rem}
   .field-lg{width:100%;margin-bottom:1.1rem}
   .field-lg label{display:block;color:var(--gold-2);font-weight:600;margin-bottom:.5rem;text-align:center;font-size:1rem}
@@ -49,21 +51,12 @@
 <!-- VIEW 1: choose -->
 <div class="view on" id="vChoose">
   <h1 data-i18n>Choose an Account</h1>
-  <div class="accounts">
-    <button class="acc" id="accPresident">
-      <span class="circle"><img src="president.jpg" alt="President"></span>
-      <span class="lbl" data-i18n>President</span>
-    </button>
-    <button class="acc" id="accNew">
-      <span class="circle"><span class="plus">+</span></span>
-      <span class="lbl" data-i18n>New Citizen</span>
-    </button>
-  </div>
+  <div class="accounts" id="accountsRow"></div>
 </div>
 
-<!-- VIEW 2: president password -->
+<!-- VIEW 2: password login (president or a saved citizen) -->
 <div class="view" id="vPassword">
-  <img src="president.jpg" alt="President" class="pres-photo">
+  <div id="pwAvatar"></div>
   <form id="pwForm" style="width:100%">
     <div class="field-lg">
       <label data-i18n>Type Your Password</label>
@@ -99,21 +92,55 @@
 <script src="i18n.js"></script>
 <script>
 function show(id){ document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');}); document.getElementById(id).classList.add('on'); }
+function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); }
 
-document.getElementById('accPresident').addEventListener('click',function(){ show('vPassword'); document.getElementById('pwInput').focus(); });
-document.getElementById('accNew').addEventListener('click',function(){ show('vSignup'); document.getElementById('suName').focus(); });
+var pending=null; // the account being logged into
+
+// Render: President circle, then saved citizen circles, then the + button
+function renderAccounts(){
+  var row=document.getElementById('accountsRow');
+  var html='<button class="acc" data-login="president">'
+    +'<span class="circle"><img src="president.jpg" alt="President"></span>'
+    +'<span class="lbl">President</span></button>';
+  Accounts.all().forEach(function(a){
+    var ini=esc((a.name||'?').trim().charAt(0).toUpperCase());
+    html+='<button class="acc" data-login="'+esc(a.id)+'">'
+      +'<span class="circle"><span class="initial">'+ini+'</span></span>'
+      +'<span class="lbl small">'+esc(a.name)+'</span></button>';
+  });
+  html+='<button class="acc" id="accNew">'
+    +'<span class="circle"><span class="plus">+</span></span>'
+    +'<span class="lbl">New Citizen</span></button>';
+  row.innerHTML=html;
+
+  row.querySelectorAll('[data-login]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var who=btn.getAttribute('data-login');
+      if(who==='president'){ pending={type:'president'}; }
+      else { pending={type:'citizen', account:Accounts.find(who)}; if(!pending.account) return; }
+      var av=document.getElementById('pwAvatar');
+      if(who==='president'){ av.innerHTML='<img src="president.jpg" alt="President" class="pres-photo">'; }
+      else { av.innerHTML='<div class="pres-photo" style="display:flex;align-items:center;justify-content:center;background:#12235c;color:var(--gold-2);font-family:var(--serif);font-size:2rem;font-weight:800">'+esc((pending.account.name||'?').charAt(0).toUpperCase())+'</div>'; }
+      show('vPassword'); document.getElementById('pwInput').value=''; document.getElementById('pwInput').focus();
+    });
+  });
+  document.getElementById('accNew').addEventListener('click',function(){ show('vSignup'); document.getElementById('suName').focus(); });
+}
+renderAccounts();
+
 document.getElementById('pwBack').addEventListener('click',function(){ show('vChoose'); });
 document.getElementById('suBack').addEventListener('click',function(){ show('vChoose'); });
 
-// President login
+// Login (president or citizen)
 document.getElementById('pwForm').addEventListener('submit',function(e){
   e.preventDefault();
-  if(document.getElementById('pwInput').value===PRESIDENT_PASSWORD){
-    Account.set(PRESIDENT_ACCOUNT);
-    location.href='home.html';
-  } else {
-    toast('❌ Wrong password.');
-    document.getElementById('pwInput').value='';
+  var val=document.getElementById('pwInput').value;
+  if(pending && pending.type==='president'){
+    if(val===PRESIDENT_PASSWORD){ Account.set(PRESIDENT_ACCOUNT); location.href='home.html'; }
+    else { toast('❌ Wrong password.'); document.getElementById('pwInput').value=''; }
+  } else if(pending && pending.type==='citizen'){
+    if(val===pending.account.pass){ Account.set({id:pending.account.id,name:pending.account.name}); location.href='home.html'; }
+    else { toast('❌ Wrong password.'); document.getElementById('pwInput').value=''; }
   }
 });
 
@@ -133,10 +160,22 @@ suPass.addEventListener('input',checkRules);
 document.getElementById('suForm').addEventListener('submit',function(e){
   e.preventDefault();
   var name=document.getElementById('suName').value.trim();
+  var pass=document.getElementById('suPass').value;
   if(!name){ toast('Please type your full name.'); return; }
   if(!checkRules()){ toast('❌ Your password needs a capital letter, a number, and a special character.'); return; }
-  Account.set({ id:'acct-'+Date.now()+Math.floor(Math.random()*99999), name:name });
-  location.href='home.html';
+  var id='acct-'+Date.now()+Math.floor(Math.random()*99999);
+  Accounts.add({ id:id, name:name, pass:pass });   // circle appears next to the President
+  Account.set({ id:id, name:name });
+
+  // Add them to the worldwide Wall of Citizens, then enter
+  function enter(){ location.href='home.html'; }
+  var initial=(name.charAt(0)||'★').toUpperCase();
+  loadSharedCitizens().then(function(list){
+    if(!list.some(function(c){ return c.num===id; })){
+      list.unshift({ name:name, role:'Citizen', initial:initial, num:id, date:new Date().toLocaleDateString(), at:Date.now() });
+      return saveSharedCitizens(list.slice(0,300));
+    }
+  }).then(enter).catch(enter);
 });
 </script>
 </body>
