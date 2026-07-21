@@ -416,14 +416,31 @@ document.addEventListener('DOMContentLoaded',()=>{
   // anthem buttons
   document.querySelectorAll('[data-anthem]').forEach(b=>b.addEventListener('click',()=>playAnthem(b)));
 
-  // ambient background music toggle (floating, bottom-left)
-  var amb=document.createElement('button'); amb.className='ambient-btn'; amb.title='Background music';
-  amb.innerHTML='🎵'; document.body.appendChild(amb);
-  function syncAmb(){ amb.classList.toggle('on', Ambient.on); amb.innerHTML=Ambient.on?'🎶':'🎵'; }
-  amb.addEventListener('click',function(){ Ambient.toggle(); syncAmb(); toast(Ambient.on?'🎶 Background music on':'🔇 Background music off'); });
-  // if the user had it on before, resume on their first tap anywhere (browsers block autoplay)
-  try{ if(localStorage.getItem('elz_ambient')==='1'){
-    var resume=function(){ Ambient.start(); syncAmb(); removeEventListener('pointerdown',resume); };
-    addEventListener('pointerdown',resume,{once:true});
+  // Background music by Creo (official YouTube playlist embed), floating bottom-left
+  var CREO_PLAYLIST='PLbIk8FMaB2IvKsCferyStuvkciIzvkPVY'; // Creo — official "MUSIC" playlist
+  var musicBtn=document.createElement('button'); musicBtn.className='ambient-btn'; musicBtn.title='Background music by Creo';
+  musicBtn.innerHTML='🎵'; document.body.appendChild(musicBtn);
+  var player=null;
+  function openMusic(){
+    if(player) return;
+    player=document.createElement('div'); player.className='creo-player';
+    player.innerHTML='<div class="creo-head"><span>🎶 Music by <b>Creo</b></span><button class="creo-close" title="Close">✕</button></div>'
+      +'<iframe width="300" height="169" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen '
+      +'src="https://www.youtube.com/embed/videoseries?list='+CREO_PLAYLIST+'&autoplay=1&rel=0"></iframe>';
+    document.body.appendChild(player);
+    player.querySelector('.creo-close').addEventListener('click',closeMusic);
+    musicBtn.classList.add('on'); musicBtn.innerHTML='🎶';
+    try{ localStorage.setItem('elz_music','1'); }catch(e){}
+  }
+  function closeMusic(){
+    if(player){ player.remove(); player=null; }
+    musicBtn.classList.remove('on'); musicBtn.innerHTML='🎵';
+    try{ localStorage.setItem('elz_music','0'); }catch(e){}
+  }
+  musicBtn.addEventListener('click',function(){ player?closeMusic():openMusic(); });
+  // reopen on first tap if it was on before (browsers block autoplay until a gesture)
+  try{ if(localStorage.getItem('elz_music')==='1'){
+    var reopen=function(){ openMusic(); removeEventListener('pointerdown',reopen); };
+    addEventListener('pointerdown',reopen,{once:true});
   } }catch(e){}
 });
