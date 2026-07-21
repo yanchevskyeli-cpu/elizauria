@@ -95,12 +95,32 @@ var STORES=[
   ]}
 ];
 
-/* ---- Bank (points per account) ---- */
+/* ---- Bank (points per account) ----
+   Every citizen starts with 10,000,000 Golden Stars.
+   The President, Prime Minister and the National Dog have unlimited stars. */
+var START_BALANCE=10000000;
+var UNLIMITED=Number.MAX_SAFE_INTEGER; // treated as "unlimited"
+var UNLIMITED_ACCOUNTS=['acct-president-eli']; // logged-in leader account
+var UNLIMITED_NAMES=['eli yanchevsky','netanel yanchevsky','boni']; // by account name too
 var Bank={
   key(){ return 'elz_balance_'+Account.ownerId(); },
-  get(){ try{ return Math.max(0, parseInt(localStorage.getItem(this.key()),10)||0); }catch(e){ return 0; } },
-  add(n){ var v=this.get()+Math.round(+n||0); if(v<0)v=0; try{ localStorage.setItem(this.key(), v); }catch(e){} return v; },
-  spend(n){ n=Math.round(+n||0); if(this.get()<n) return false; try{ localStorage.setItem(this.key(), this.get()-n); }catch(e){} return true; }
+  isUnlimited(){
+    var a=Account.get(); if(!a) return false;
+    if(a.president) return true;
+    if(UNLIMITED_ACCOUNTS.indexOf(a.id)>-1) return true;
+    return UNLIMITED_NAMES.indexOf(String(a.name||'').trim().toLowerCase())>-1;
+  },
+  get(){
+    if(this.isUnlimited()) return UNLIMITED;
+    try{
+      var raw=localStorage.getItem(this.key());
+      if(raw===null){ localStorage.setItem(this.key(), START_BALANCE); return START_BALANCE; }
+      return Math.max(0, parseInt(raw,10)||0);
+    }catch(e){ return START_BALANCE; }
+  },
+  add(n){ if(this.isUnlimited()) return UNLIMITED; var v=this.get()+Math.round(+n||0); if(v<0)v=0; try{ localStorage.setItem(this.key(), v); }catch(e){} return v; },
+  spend(n){ if(this.isUnlimited()) return true; n=Math.round(+n||0); if(this.get()<n) return false; try{ localStorage.setItem(this.key(), this.get()-n); }catch(e){} return true; },
+  display(){ return this.isUnlimited() ? '∞' : this.get().toLocaleString(); }
 };
 
 /* ---- Inventory (things you bought, per account) ---- */
