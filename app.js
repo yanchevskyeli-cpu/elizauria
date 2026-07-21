@@ -96,9 +96,9 @@ var STORES=[
 ];
 
 /* ---- Bank (points per account) ----
-   Every citizen starts with 10,000,000 Golden Stars.
+   Every citizen starts with 10,000 Golden Stars.
    The President, Prime Minister and the National Dog have unlimited stars. */
-var START_BALANCE=10000000;
+var START_BALANCE=10000;
 var UNLIMITED=Number.MAX_SAFE_INTEGER; // treated as "unlimited"
 var UNLIMITED_ACCOUNTS=['acct-president-eli']; // logged-in leader account
 var UNLIMITED_NAMES=['eli yanchevsky','netanel yanchevsky','boni']; // by account name too
