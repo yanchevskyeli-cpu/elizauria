@@ -106,10 +106,15 @@ function fetchFeed(){
     .then(function(t){ try{ var d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
     .catch(function(){ return null; });
 }
+function myPosts(){ try{return JSON.parse(localStorage.getItem('elz_my_posts'))||[];}catch(e){return[];} }
 function renderFeed(list){
   var box=document.getElementById('publicDecrees');
+  var mine=myPosts();
   var community=(list||[]).map(function(d){
-    return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Bulletin · '+esc(d.date||'')+' · by '+esc(d.author||'a citizen')+'</div><h3>'+esc(d.title)+' <span class="badge">Citizen Post</span></h3><p>'+esc(d.body)+'</p></div>';
+    var delBtn=(d.id && mine.indexOf(d.id)>-1)
+      ? ' <button class="btn danger sm del-post" data-id="'+esc(d.id)+'" style="float:right;margin-left:.6rem">🗑️ Delete My Article</button>'
+      : '';
+    return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Bulletin · '+esc(d.date||'')+' · by '+esc(d.author||'a citizen')+delBtn+'</div><h3>'+esc(d.title)+' <span class="badge">Citizen Post</span></h3><p>'+esc(d.body)+'</p></div>';
   }).join('');
   fetch('decrees.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(official){
     var offHtml=(Array.isArray(official)?official:[]).map(function(d){
@@ -128,11 +133,29 @@ document.getElementById('decreeForm').addEventListener('submit',function(e){
   var form=this;
   fetchFeed().then(function(list){
     if(list===null){ toast('⚠️ Could not reach the national feed. Try again in a moment.'); return; }
-    list.unshift({author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()});
-    list=list.slice(0,100);
+    var id='p'+Date.now()+Math.floor(Math.random()*9999);
+    list.unshift({id:id,author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()});
     return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list)})
-      .then(function(){ form.reset(); renderFeed(list); confetti(); toast('📰 Published! The whole nation can see it.'); });
+      .then(function(){
+        var mine=myPosts(); mine.push(id);
+        try{ localStorage.setItem('elz_my_posts',JSON.stringify(mine)); }catch(err){}
+        form.reset(); renderFeed(list); confetti(); toast('📰 Published! The whole nation can see it.');
+      });
   }).catch(function(){ toast('⚠️ Could not publish. Check your internet and try again.'); });
+});
+
+// Writer-only delete (button appears only on your own articles)
+document.getElementById('publicDecrees').addEventListener('click',function(e){
+  var btn=e.target.closest('.del-post'); if(!btn) return;
+  var id=btn.getAttribute('data-id');
+  if(myPosts().indexOf(id)===-1){ toast('Only the writer can delete this article.'); return; }
+  if(!confirm('Delete your article from the national bulletin everywhere?')) return;
+  fetchFeed().then(function(list){
+    if(list===null){ toast('⚠️ Could not reach the feed. Try again.'); return; }
+    var next=list.filter(function(d){ return d.id!==id; });
+    return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(next)})
+      .then(function(){ renderFeed(next); toast('🗑️ Article deleted from the national record.'); });
+  }).catch(function(){ toast('⚠️ Could not delete. Check your internet and try again.'); });
 });
 </script>
 </body>
