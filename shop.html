@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop — Elizauria</title>
+<meta name="description" content="Spend your Golden Stars in the shops of Elizauria.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
+</head>
+<body>
+
+<div class="ribbon">Elizauria Marketplace · Spend Your Golden Stars ★</div>
+
+<header class="site">
+  <div class="nav-inner">
+    <a class="brand" href="home.html">
+      <svg class="crest" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#12235c" stroke="#e0b94d" stroke-width="3"/><polygon points="50,18 59,42 85,42 64,58 72,84 50,68 28,84 36,58 15,42 41,42" fill="#e0b94d"/></svg>
+      <span class="brand-text"><strong>ELIZAURIA</strong><span>Sovereign Republic</span></span>
+    </a>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+    <nav class="main">
+      <a href="home.html">Home</a>
+      <a href="founders.html">Leaders</a>
+      <a href="citizenship.html">Citizenship</a>
+      <a href="passport.html">Passport</a>
+      <a href="tourism.html">Visit</a>
+      <a href="games.html">Games</a>
+      <a href="work.html">Work</a>
+      <a href="bank.html">Bank</a>
+      <a href="shop.html" class="active">Shop</a>
+      <a href="news.html">News</a>
+      <a href="index.html" title="Language">🌐</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding:3.4rem 1.25rem 2.6rem">
+  <div class="aurora"></div>
+  <h1>The <span class="shine">Marketplace</span></h1>
+  <p class="sub">Every store in Elizauria. Earn Golden Stars at Work, spend them here.</p>
+</section>
+
+<main>
+  <div class="shop-bar">
+    <span class="bal">💰 <span data-i18n>Balance</span>: <b id="shopBal">0</b> ★</span>
+    <a href="work.html" class="btn gold sm">💼 Earn More</a>
+  </div>
+  <div id="stores"></div>
+</main>
+
+<footer class="site">
+  <div class="aurora"></div>
+  <div class="foot-inner">
+    <div><h4>Elizauria</h4><p style="font-size:.9rem;color:#9aa4c4">Founded 2026. "From a bedroom, a nation."</p></div>
+    <div><h4>Explore</h4><a href="games.html">Games</a><a href="work.html">Work</a><a href="bank.html">Bank</a><a href="shop.html">Shop</a><a href="news.html">News</a></div>
+  </div>
+  <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
+</footer>
+
+<script src="app.js"></script>
+<script src="i18n.js"></script>
+<script>
+function fmt(n){ return n.toLocaleString(); }
+function refreshBal(){ document.getElementById('shopBal').textContent=fmt(Bank.get()); }
+refreshBal();
+
+var buyTxt='Buy', ownedTxt='Owned';
+document.getElementById('stores').innerHTML=STORES.map(function(s){
+  return '<h2 class="store-title"><span class="em">'+s.icon+'</span>'+s.name+'</h2><div class="shop-grid">'
+    + s.items.map(function(it){
+        var owned=Inventory.count(it.id);
+        return '<div class="shop-item" id="item-'+it.id+'">'
+          +'<span class="emj">'+it.e+'</span>'
+          +'<span class="nm">'+it.n+'</span>'
+          +'<span class="price">'+fmt(it.p)+' ★</span>'
+          +'<span class="owned">'+(owned?('✓ Owned ×'+owned):'')+'</span>'
+          +'<button class="btn gold sm buy" data-id="'+it.id+'" data-price="'+it.p+'">Buy</button>'
+          +'</div>';
+      }).join('')
+    + '</div>';
+}).join('');
+
+document.getElementById('stores').addEventListener('click',function(e){
+  var btn=e.target.closest('.buy'); if(!btn) return;
+  var id=btn.getAttribute('data-id'), price=+btn.getAttribute('data-price');
+  if(Bank.get()<price){ toast('💸 Not enough Golden Stars. Go earn some at Work!'); return; }
+  Bank.spend(price);
+  var owned=Inventory.addItem(id);
+  refreshBal();
+  var card=document.getElementById('item-'+id);
+  card.querySelector('.owned').textContent='✓ Owned ×'+owned;
+  confetti(); toast('🛍️ Purchased! Enjoy your new item.');
+});
+</script>
+</body>
+</html>

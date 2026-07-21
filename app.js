@@ -42,11 +42,74 @@ var PROFESSIONS=[
   {id:'firefighter',icon:'🧯',name:'Firefighter',  desc:'Put out fires, don\'t soak the cat!',        target:'🔥', bad:'🐱'}
 ];
 
+/* ---- Shop catalog (stores + items, prices in Golden Stars ★) ---- */
+var STORES=[
+  {name:'Grocery Store', icon:'🛒', items:[
+    {id:'apple',n:'Apple',e:'🍎',p:3},{id:'bread',n:'Bread',e:'🍞',p:5},{id:'milk',n:'Milk',e:'🥛',p:6},
+    {id:'eggs',n:'Eggs',e:'🥚',p:10},{id:'cheese',n:'Cheese',e:'🧀',p:12},{id:'choc',n:'Chocolate',e:'🍫',p:8},
+    {id:'coffee',n:'Coffee',e:'☕',p:15},{id:'melon',n:'Watermelon',e:'🍉',p:20}
+  ]},
+  {name:'Snack Bar', icon:'🍔', items:[
+    {id:'fries',n:'Fries',e:'🍟',p:10},{id:'icecream',n:'Ice Cream',e:'🍦',p:15},{id:'taco',n:'Taco',e:'🌮',p:20},
+    {id:'burger',n:'Burger',e:'🍔',p:25},{id:'pizza',n:'Pizza',e:'🍕',p:40},{id:'cake',n:'Cake',e:'🎂',p:55},
+    {id:'sushi',n:'Sushi',e:'🍣',p:90},{id:'donut',n:'Donut',e:'🍩',p:12}
+  ]},
+  {name:'Toy Store', icon:'🧸', items:[
+    {id:'ball',n:'Ball',e:'⚽',p:15},{id:'kite',n:'Kite',e:'🪁',p:25},{id:'puzzle',n:'Puzzle',e:'🧩',p:30},
+    {id:'teddy',n:'Teddy Bear',e:'🧸',p:40},{id:'boardgame',n:'Board Game',e:'🎲',p:60},{id:'lego',n:'Building Blocks',e:'🧱',p:120},
+    {id:'rccar',n:'RC Car',e:'🏎️',p:200}
+  ]},
+  {name:'Fashion Boutique', icon:'👕', items:[
+    {id:'hat',n:'Hat',e:'🧢',p:60},{id:'tshirt',n:'T-Shirt',e:'👕',p:80},{id:'shades',n:'Sunglasses',e:'🕶️',p:120},
+    {id:'backpack',n:'Backpack',e:'🎒',p:200},{id:'sneakers',n:'Sneakers',e:'👟',p:250},{id:'dress',n:'Dress',e:'👗',p:350},
+    {id:'watch',n:'Watch',e:'⌚',p:900}
+  ]},
+  {name:'Pet Shop', icon:'🐾', items:[
+    {id:'goldfish',n:'Goldfish',e:'🐠',p:30},{id:'hamster',n:'Hamster',e:'🐹',p:80},{id:'parrot',n:'Parrot',e:'🦜',p:500},
+    {id:'cat',n:'Cat',e:'🐱',p:400},{id:'dog',n:'Dog',e:'🐕',p:600},{id:'pony',n:'Pony',e:'🐴',p:5000},
+    {id:'horse',n:'Horse',e:'🐎',p:15000}
+  ]},
+  {name:'Electronics', icon:'📱', items:[
+    {id:'earbuds',n:'Earbuds',e:'🎧',p:150},{id:'console',n:'Game Console',e:'🎮',p:800},{id:'smartwatch',n:'Smartwatch',e:'⌚',p:600},
+    {id:'phone',n:'Smartphone',e:'📱',p:1200},{id:'camera',n:'Camera',e:'📷',p:1500},{id:'drone',n:'Drone',e:'🛸',p:1800},
+    {id:'tv',n:'Big TV',e:'📺',p:2500},{id:'laptop',n:'Laptop',e:'💻',p:3000}
+  ]},
+  {name:'Car Dealership', icon:'🚗', items:[
+    {id:'bike',n:'Bicycle',e:'🚲',p:500},{id:'scooter',n:'Scooter',e:'🛵',p:1200},{id:'jetski',n:'Jet Ski',e:'🌊',p:30000},
+    {id:'moto',n:'Motorcycle',e:'🏍️',p:9000},{id:'car',n:'Car',e:'🚗',p:45000},{id:'truck',n:'Truck',e:'🚚',p:60000},
+    {id:'boat',n:'Boat',e:'⛵',p:120000},{id:'sportscar',n:'Sports Car',e:'🏎️',p:250000}
+  ]},
+  {name:'Real Estate', icon:'🏠', items:[
+    {id:'tent',n:'Tent',e:'⛺',p:300},{id:'apartment',n:'Apartment',e:'🏢',p:150000},{id:'house',n:'House',e:'🏠',p:500000},
+    {id:'villa',n:'Beach Villa',e:'🏖️',p:3000000},{id:'mansion',n:'Mansion',e:'🏛️',p:2000000},{id:'castle',n:'Castle',e:'🏰',p:10000000},
+    {id:'island',n:'Private Island',e:'🏝️',p:50000000}
+  ]},
+  {name:'Luxury & Jewels', icon:'💎', items:[
+    {id:'ring',n:'Gold Ring',e:'💍',p:5000},{id:'rolex',n:'Luxury Watch',e:'⌚',p:90000},{id:'statue',n:'Golden Statue',e:'🗿',p:800000},
+    {id:'crown',n:'Royal Crown',e:'👑',p:1000000},{id:'diamond',n:'Diamond',e:'💎',p:500000},{id:'yacht',n:'Mega Yacht',e:'🛥️',p:5000000},
+    {id:'jet',n:'Private Jet',e:'✈️',p:20000000}
+  ]},
+  {name:'Elizauria Space Agency', icon:'🚀', items:[
+    {id:'telescope',n:'Telescope',e:'🔭',p:2000},{id:'spacesuit',n:'Space Suit',e:'🧑‍🚀',p:80000},{id:'satellite',n:'Satellite',e:'🛰️',p:5000000},
+    {id:'rocket',n:'Rocket',e:'🚀',p:100000000},{id:'moon',n:'Plot on the Moon',e:'🌙',p:250000000},{id:'star',n:'Your Own Star',e:'⭐',p:999999999}
+  ]}
+];
+
 /* ---- Bank (points per account) ---- */
 var Bank={
   key(){ return 'elz_balance_'+Account.ownerId(); },
   get(){ try{ return Math.max(0, parseInt(localStorage.getItem(this.key()),10)||0); }catch(e){ return 0; } },
-  add(n){ var v=this.get()+Math.round(+n||0); if(v<0)v=0; try{ localStorage.setItem(this.key(), v); }catch(e){} return v; }
+  add(n){ var v=this.get()+Math.round(+n||0); if(v<0)v=0; try{ localStorage.setItem(this.key(), v); }catch(e){} return v; },
+  spend(n){ n=Math.round(+n||0); if(this.get()<n) return false; try{ localStorage.setItem(this.key(), this.get()-n); }catch(e){} return true; }
+};
+
+/* ---- Inventory (things you bought, per account) ---- */
+var Inventory={
+  key(){ return 'elz_inv_'+Account.ownerId(); },
+  all(){ try{ return JSON.parse(localStorage.getItem(this.key()))||{}; }catch(e){ return {}; } },
+  count(id){ return this.all()[id]||0; },
+  addItem(id){ var inv=this.all(); inv[id]=(inv[id]||0)+1; try{ localStorage.setItem(this.key(), JSON.stringify(inv)); }catch(e){} return inv[id]; },
+  total(){ var inv=this.all(),t=0; for(var k in inv) t+=inv[k]; return t; }
 };
 
 /* ---- Citizen registry (saved in this browser) ---- */
