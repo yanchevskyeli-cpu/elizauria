@@ -8,6 +8,18 @@ window.ELZ = {
   founded: 2026
 };
 
+/* ---- Accounts (login/session) ---- */
+var Account={
+  get(){ try{ return JSON.parse(localStorage.getItem('elz_account'))||null; }catch(e){ return null; } },
+  set(a){ try{ localStorage.setItem('elz_account', JSON.stringify(a)); }catch(e){} },
+  clear(){ try{ localStorage.removeItem('elz_account'); }catch(e){} },
+  deviceId(){ var d; try{ d=localStorage.getItem('elz_device'); if(!d){ d='dev-'+Date.now()+Math.floor(Math.random()*99999); localStorage.setItem('elz_device',d); } }catch(e){ d='dev-anon'; } return d; },
+  ownerId(){ var a=this.get(); return a? a.id : this.deviceId(); },
+  name(){ var a=this.get(); return a? a.name : ''; }
+};
+var PRESIDENT_ACCOUNT={ id:'acct-president-eli', name:'Eli Yanchevsky', president:true };
+var PRESIDENT_PASSWORD='Eli24032015!';
+
 /* ---- Citizen registry (saved in this browser) ---- */
 const Registry = {
   key: "elz_citizens",

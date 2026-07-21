@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elizauria — Choose an Account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
+<style>
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(165deg,#16296b,var(--navy) 70%);position:relative;overflow:hidden;padding:2rem 1rem}
+  .acc-crest{width:76px;height:76px;margin-bottom:1rem;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5));position:relative;z-index:2}
+  h1{font-family:var(--serif);color:#fff;font-size:clamp(1.6rem,5vw,2.6rem);text-align:center;position:relative;z-index:2;margin-bottom:2.6rem}
+  .view{display:none;flex-direction:column;align-items:center;position:relative;z-index:2;width:100%;max-width:420px}
+  .view.on{display:flex}
+  .accounts{display:flex;gap:3rem;flex-wrap:wrap;justify-content:center}
+  .acc{display:flex;flex-direction:column;align-items:center;gap:.9rem;cursor:pointer;background:none;border:none;transition:.25s}
+  .acc:hover{transform:translateY(-6px)}
+  .acc .circle{width:130px;height:130px;border-radius:50%;overflow:hidden;border:3px solid var(--gold);
+    box-shadow:0 14px 34px -12px rgba(0,0,0,.7),0 0 0 6px rgba(224,185,77,.15);transition:.25s;background:#12235c;
+    display:flex;align-items:center;justify-content:center}
+  .acc:hover .circle{box-shadow:0 18px 40px -12px var(--gold),0 0 0 8px rgba(224,185,77,.3)}
+  .acc .circle img{width:100%;height:100%;object-fit:cover}
+  .acc .plus{font-size:4.5rem;color:var(--gold-2);line-height:1;font-weight:300}
+  .acc .lbl{color:#fff;font-weight:700;letter-spacing:.1em;font-size:.95rem}
+  .field-lg{width:100%;margin-bottom:1.1rem}
+  .field-lg label{display:block;color:var(--gold-2);font-weight:600;margin-bottom:.5rem;text-align:center;font-size:1rem}
+  .field-lg input{width:100%;padding:.9rem 1.1rem;border:2px solid var(--line);border-radius:12px;font-size:1.05rem;
+    background:rgba(255,255,255,.95);color:var(--ink);text-align:center}
+  .field-lg input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(224,185,77,.25)}
+  .rules{list-style:none;padding:0;margin:.2rem 0 1.2rem;width:100%;font-size:.86rem}
+  .rules li{color:#b9c2df;padding:.15rem 0;transition:.2s}
+  .rules li::before{content:"○ ";color:#7d88ad}
+  .rules li.ok{color:#7CFC00}
+  .rules li.ok::before{content:"✓ "}
+  .back{margin-top:1.2rem;color:#b9c2df;background:none;border:none;cursor:pointer;font-size:.9rem}
+  .back:hover{color:var(--gold-2)}
+  .pres-photo{width:74px;height:74px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);margin-bottom:.8rem}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+
+<svg class="acc-crest" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#12235c" stroke="#e0b94d" stroke-width="3"/><polygon points="50,18 59,42 85,42 64,58 72,84 50,68 28,84 36,58 15,42 41,42" fill="#e0b94d"/></svg>
+
+<!-- VIEW 1: choose -->
+<div class="view on" id="vChoose">
+  <h1 data-i18n>Choose an Account</h1>
+  <div class="accounts">
+    <button class="acc" id="accPresident">
+      <span class="circle"><img src="president.jpg" alt="President"></span>
+      <span class="lbl" data-i18n>President</span>
+    </button>
+    <button class="acc" id="accNew">
+      <span class="circle"><span class="plus">+</span></span>
+      <span class="lbl" data-i18n>New Citizen</span>
+    </button>
+  </div>
+</div>
+
+<!-- VIEW 2: president password -->
+<div class="view" id="vPassword">
+  <img src="president.jpg" alt="President" class="pres-photo">
+  <form id="pwForm" style="width:100%">
+    <div class="field-lg">
+      <label data-i18n>Type Your Password</label>
+      <input type="password" id="pwInput" autocomplete="off" required>
+    </div>
+    <button type="submit" class="btn gold" style="width:100%;justify-content:center" data-i18n>Enter</button>
+  </form>
+  <button class="back" id="pwBack" data-i18n>← Back</button>
+</div>
+
+<!-- VIEW 3: new citizen -->
+<div class="view" id="vSignup">
+  <form id="suForm" style="width:100%">
+    <div class="field-lg">
+      <label data-i18n>What Is Your Full Name?</label>
+      <input type="text" id="suName" autocomplete="off" required>
+    </div>
+    <div class="field-lg">
+      <label data-i18n>Make a Password</label>
+      <input type="password" id="suPass" autocomplete="off" required>
+    </div>
+    <ul class="rules">
+      <li id="rCap" data-i18n>A capital letter</li>
+      <li id="rNum" data-i18n>At least one number</li>
+      <li id="rSpec" data-i18n>A special character (!@#$...)</li>
+    </ul>
+    <button type="submit" class="btn gold" style="width:100%;justify-content:center" data-i18n>Create Account &amp; Enter</button>
+  </form>
+  <button class="back" id="suBack" data-i18n>← Back</button>
+</div>
+
+<script src="app.js"></script>
+<script src="i18n.js"></script>
+<script>
+function show(id){ document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');}); document.getElementById(id).classList.add('on'); }
+
+document.getElementById('accPresident').addEventListener('click',function(){ show('vPassword'); document.getElementById('pwInput').focus(); });
+document.getElementById('accNew').addEventListener('click',function(){ show('vSignup'); document.getElementById('suName').focus(); });
+document.getElementById('pwBack').addEventListener('click',function(){ show('vChoose'); });
+document.getElementById('suBack').addEventListener('click',function(){ show('vChoose'); });
+
+// President login
+document.getElementById('pwForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  if(document.getElementById('pwInput').value===PRESIDENT_PASSWORD){
+    Account.set(PRESIDENT_ACCOUNT);
+    location.href='home.html';
+  } else {
+    toast('❌ Wrong password.');
+    document.getElementById('pwInput').value='';
+  }
+});
+
+// Live password rule check
+var suPass=document.getElementById('suPass');
+function checkRules(){
+  var v=suPass.value;
+  var cap=/[A-Z]/.test(v), num=/[0-9]/.test(v), spec=/[^A-Za-z0-9]/.test(v);
+  document.getElementById('rCap').classList.toggle('ok',cap);
+  document.getElementById('rNum').classList.toggle('ok',num);
+  document.getElementById('rSpec').classList.toggle('ok',spec);
+  return cap&&num&&spec;
+}
+suPass.addEventListener('input',checkRules);
+
+// New citizen signup
+document.getElementById('suForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=document.getElementById('suName').value.trim();
+  if(!name){ toast('Please type your full name.'); return; }
+  if(!checkRules()){ toast('❌ Your password needs a capital letter, a number, and a special character.'); return; }
+  Account.set({ id:'acct-'+Date.now()+Math.floor(Math.random()*99999), name:name });
+  location.href='home.html';
+});
+</script>
+</body>
+</html>

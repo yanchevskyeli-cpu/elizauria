@@ -106,12 +106,12 @@ function fetchFeed(){
     .then(function(t){ try{ var d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
     .catch(function(){ return null; });
 }
-function myPosts(){ try{return JSON.parse(localStorage.getItem('elz_my_posts'))||[];}catch(e){return[];} }
 function renderFeed(list){
   var box=document.getElementById('publicDecrees');
-  var mine=myPosts();
+  var me=Account.ownerId();
   var community=(list||[]).map(function(d){
-    var delBtn=(d.id && mine.indexOf(d.id)>-1)
+    var canDelete = d.ownerId ? (d.ownerId===me) : false;
+    var delBtn=canDelete
       ? ' <button class="btn danger sm del-post" data-id="'+esc(d.id)+'" style="float:right;margin-left:.6rem">🗑️ Delete My Article</button>'
       : '';
     return '<div class="news-item decree reveal in"><div class="meta">Citizens\' Bulletin · '+esc(d.date||'')+' · by '+esc(d.author||'a citizen')+delBtn+'</div><h3>'+esc(d.title)+' <span class="badge">Citizen Post</span></h3><p>'+esc(d.body)+'</p></div>';
@@ -124,6 +124,19 @@ function renderFeed(list){
   }).catch(function(){ box.innerHTML=community; });
 }
 
+// If logged in, prefill the author with the account name and lock it
+(function(){
+  var acct=Account.get();
+  if(acct){
+    var f=document.getElementById('dAuthor');
+    f.value=acct.name; f.readOnly=true;
+    var note=document.createElement('p');
+    note.style.cssText='font-size:.8rem;color:var(--muted);margin-top:.6rem';
+    note.innerHTML='<span data-tx>Posting as</span> <strong>'+acct.name+'</strong>'+(acct.president?' 👑':'');
+    document.getElementById('decreeForm').appendChild(note);
+  }
+})();
+
 fetchFeed().then(function(list){ renderFeed(list||[]); });
 
 document.getElementById('decreeForm').addEventListener('submit',function(e){
@@ -134,24 +147,24 @@ document.getElementById('decreeForm').addEventListener('submit',function(e){
   fetchFeed().then(function(list){
     if(list===null){ toast('⚠️ Could not reach the national feed. Try again in a moment.'); return; }
     var id='p'+Date.now()+Math.floor(Math.random()*9999);
-    list.unshift({id:id,author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()});
+    list.unshift({id:id,ownerId:Account.ownerId(),author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()});
     return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list)})
       .then(function(){
-        var mine=myPosts(); mine.push(id);
-        try{ localStorage.setItem('elz_my_posts',JSON.stringify(mine)); }catch(err){}
         form.reset(); renderFeed(list); confetti(); toast('📰 Published! The whole nation can see it.');
       });
   }).catch(function(){ toast('⚠️ Could not publish. Check your internet and try again.'); });
 });
 
-// Writer-only delete (button appears only on your own articles)
+// Writer-only delete (button appears only on the author's own account)
 document.getElementById('publicDecrees').addEventListener('click',function(e){
   var btn=e.target.closest('.del-post'); if(!btn) return;
   var id=btn.getAttribute('data-id');
-  if(myPosts().indexOf(id)===-1){ toast('Only the writer can delete this article.'); return; }
   if(!confirm('Delete your article from the national bulletin everywhere?')) return;
   fetchFeed().then(function(list){
     if(list===null){ toast('⚠️ Could not reach the feed. Try again.'); return; }
+    var me=Account.ownerId();
+    var target=list.find(function(d){ return d.id===id; });
+    if(target && target.ownerId!==me){ toast('Only the writer can delete this article.'); return; }
     var next=list.filter(function(d){ return d.id!==id; });
     return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(next)})
       .then(function(){ renderFeed(next); toast('🗑️ Article deleted from the national record.'); });
