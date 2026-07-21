@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=7">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
 </head>
 <body>
@@ -95,8 +95,8 @@
   <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
 </footer>
 
-<script src="app.js"></script>
-<script src="i18n.js"></script>
+<script src="app.js?v=7"></script>
+<script src="i18n.js?v=7"></script>
 <script>
 /* National bulletin: shared worldwide via textdb.dev (no account, instant).
    The President can reset the feed by overwriting this key. */
@@ -112,6 +112,9 @@ function fetchFeed(){
 /* Local cache so news never disappears even if the shared service hiccups */
 function localNews(){ try{ return JSON.parse(localStorage.getItem('elz_news_cache'))||[]; }catch(e){ return []; } }
 function saveLocalNews(list){ try{ localStorage.setItem('elz_news_cache', JSON.stringify((list||[]).slice(0,300))); }catch(e){} }
+/* My own posts are kept permanently so they can never vanish for the author */
+function myArticles(){ try{ return JSON.parse(localStorage.getItem('elz_my_articles'))||[]; }catch(e){ return []; } }
+function rememberMyArticle(item){ try{ var m=myArticles(); m.unshift(item); localStorage.setItem('elz_my_articles', JSON.stringify(m.slice(0,100))); }catch(e){} }
 function ts(d){ return d && d.ts ? d.ts : (parseInt(String(d&&d.id).replace(/\D/g,'').slice(0,13),10)||0); }
 function mergeNews(a,b){
   var map={};
@@ -151,10 +154,10 @@ function renderFeed(list){
   }
 })();
 
-// Show cached news immediately, then merge in the shared feed
-renderFeed(localNews());
+// Show cached + my own posts immediately, then merge in the shared feed
+renderFeed(mergeNews(myArticles(), localNews()));
 fetchFeed().then(function(remote){
-  var merged=mergeNews(remote, localNews());
+  var merged=mergeNews(mergeNews(myArticles(), remote), localNews());
   saveLocalNews(merged);
   renderFeed(merged);
 });
@@ -165,8 +168,9 @@ document.getElementById('decreeForm').addEventListener('submit',function(e){
   if(!a||!t||!b) return;
   var form=this;
   var item={id:'p'+Date.now()+Math.floor(Math.random()*9999),ts:Date.now(),ownerId:Account.ownerId(),author:a.slice(0,40),title:t.slice(0,80),body:b.slice(0,500),date:new Date().toLocaleDateString()};
+  rememberMyArticle(item);           // permanent copy for the author
   fetchFeed().then(function(remote){
-    var merged=mergeNews([item], mergeNews(remote, localNews()));
+    var merged=mergeNews([item], mergeNews(mergeNews(myArticles(), remote), localNews()));
     saveLocalNews(merged);           // persists locally right away
     form.reset(); renderFeed(merged); confetti(); toast('📰 Published! The whole nation can see it.');
     return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(merged)}).catch(function(){});
@@ -184,6 +188,7 @@ document.getElementById('publicDecrees').addEventListener('click',function(e){
     var target=merged.find(function(d){ return d.id===id; });
     if(target && target.ownerId && target.ownerId!==me){ toast('Only the writer can delete this article.'); return; }
     var next=merged.filter(function(d){ return d.id!==id; });
+    try{ localStorage.setItem('elz_my_articles', JSON.stringify(myArticles().filter(function(d){ return d.id!==id; }))); }catch(e){}
     saveLocalNews(next); renderFeed(next); toast('🗑️ Article deleted from the national record.');
     return fetch(FEED_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(next)}).catch(function(){});
   });

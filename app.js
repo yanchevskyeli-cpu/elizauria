@@ -253,9 +253,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   const tog=document.querySelector('.nav-toggle'), nav=document.querySelector('nav.main');
   if(tog&&nav) tog.addEventListener('click',()=>nav.classList.toggle('open'));
 
-  // reveal on scroll
-  const io=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.12});
-  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // reveal on scroll (threshold 0 so very tall sections still reveal on phones)
+  var revEls=document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); },{threshold:0, rootMargin:'0px 0px -40px 0px'});
+    revEls.forEach(function(el){ io.observe(el); });
+    // safety net: never let content stay hidden
+    setTimeout(function(){ revEls.forEach(function(el){ el.classList.add('in'); }); }, 4000);
+  } else {
+    revEls.forEach(function(el){ el.classList.add('in'); });
+  }
 
   // animated counters
   document.querySelectorAll('[data-count]').forEach(el=>{
