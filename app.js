@@ -301,9 +301,10 @@ function playAnthem(btn){
       ['E5',1],['E5',1],['D5',1],['C5',1],  ['D5',1],['E5',1],['F5',2],
       ['G5',2],['E5',1],['C5',1],   ['D5',3],['R',1],
       ['E5',1],['D5',1],['C5',1],['D5',1],  ['E5',1],['F5',1],['G5',2],
-      ['C5',1],['D5',1],['E5',1],['F5',1],  ['G5',4]
+      ['C5',1],['D5',1],['E5',1],['F5',1],  ['G5',4],
+      ['C5',4]   // final resolving C
     ];
-    var chords=['C3','C3','F3','G3','C3','A3','F3','G3','C3','C3','F3','G3','C3','C3','G3','C3'];
+    var chords=['C3','C3','F3','G3','C3','A3','F3','G3','C3','C3','F3','G3','C3','C3','G3','C3','C3'];
     var t=0;
     mel.forEach(function(m){ var f=N[m[0]], d=m[1]*beat; if(f>0) beep(f, d*0.94, 'triangle', t, 0.17); t+=d; });
     // bass note under each bar
@@ -311,6 +312,43 @@ function playAnthem(btn){
     if(btn){ btn.classList.add('playing'); setTimeout(function(){ btn.classList.remove('playing'); }, t*1000+250); }
   }catch(e){ toast('Hum it yourself: Rise, Elizauria!'); }
 }
+/* ---- Ambient background soundscape (gentle looping pad, toggle on/off) ---- */
+var Ambient={
+  on:false, master:null, nodes:[],
+  start(){
+    if(this.on) return;
+    try{
+      var ac=audioCtx();
+      var master=ac.createGain(); master.gain.value=0.0001; master.connect(ac.destination);
+      var filter=ac.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=700; filter.Q.value=0.6; filter.connect(master);
+      // soft C-major pad
+      var voices=[130.81,196.00,261.63,329.63];
+      var oscs=voices.map(function(f,idx){
+        var o=ac.createOscillator(); o.type= idx<2?'sine':'triangle'; o.frequency.value=f;
+        o.detune.value=(idx%2?4:-4); // slight chorus
+        var g=ac.createGain(); g.gain.value=0.22;
+        o.connect(g); g.connect(filter); o.start(); return o;
+      });
+      // slow swell so it breathes
+      var lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.05;
+      var lg=ac.createGain(); lg.gain.value=0.025; lfo.connect(lg); lg.connect(master.gain); lfo.start();
+      // gentle wind-like shimmer
+      var shimmer=ac.createOscillator(); shimmer.type='sine'; shimmer.frequency.value=523.25;
+      var sg=ac.createGain(); sg.gain.value=0.04; shimmer.connect(sg); sg.connect(filter); shimmer.start();
+      master.gain.setTargetAtTime(0.05, ac.currentTime, 1.2); // fade in
+      this.master=master; this.nodes=oscs.concat([lfo,shimmer]); this.on=true;
+    }catch(e){}
+  },
+  stop(){
+    if(!this.on) return; this.on=false;
+    try{
+      var ac=audioCtx(), self=this;
+      this.master.gain.setTargetAtTime(0.0001, ac.currentTime, 0.4);
+      setTimeout(function(){ self.nodes.forEach(function(n){ try{n.stop();}catch(e){}}); self.nodes=[]; },700);
+    }catch(e){}
+  },
+  toggle(){ this.on ? this.stop() : this.start(); try{ localStorage.setItem('elz_ambient', this.on?'1':'0'); }catch(e){} return this.on; }
+};
 function bark(){ try{ beep(300,0.12,'sawtooth',0,0.25); beep(230,0.16,'sawtooth',0.12,0.22); }catch(e){} }
 function thud(){ try{ beep(90,0.14,'square',0,0.32); beep(60,0.2,'sine',0.02,0.25);}catch(e){} }
 
@@ -377,4 +415,15 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // anthem buttons
   document.querySelectorAll('[data-anthem]').forEach(b=>b.addEventListener('click',()=>playAnthem(b)));
+
+  // ambient background music toggle (floating, bottom-left)
+  var amb=document.createElement('button'); amb.className='ambient-btn'; amb.title='Background music';
+  amb.innerHTML='🎵'; document.body.appendChild(amb);
+  function syncAmb(){ amb.classList.toggle('on', Ambient.on); amb.innerHTML=Ambient.on?'🎶':'🎵'; }
+  amb.addEventListener('click',function(){ Ambient.toggle(); syncAmb(); toast(Ambient.on?'🎶 Background music on':'🔇 Background music off'); });
+  // if the user had it on before, resume on their first tap anywhere (browsers block autoplay)
+  try{ if(localStorage.getItem('elz_ambient')==='1'){
+    var resume=function(){ Ambient.start(); syncAmb(); removeEventListener('pointerdown',resume); };
+    addEventListener('pointerdown',resume,{once:true});
+  } }catch(e){}
 });

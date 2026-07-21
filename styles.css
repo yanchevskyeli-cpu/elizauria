@@ -278,6 +278,14 @@ section{margin-bottom:4.5rem}
 .totop.show{opacity:1;pointer-events:auto}
 .totop:hover{transform:translateY(-3px)}
 
+/* Ambient music toggle */
+.ambient-btn{position:fixed;bottom:22px;left:22px;width:46px;height:46px;border-radius:50%;
+  background:var(--navy);color:var(--gold-2);border:1px solid var(--line);font-size:1.15rem;cursor:pointer;
+  box-shadow:var(--shadow-md);z-index:150;transition:.25s}
+.ambient-btn:hover{transform:translateY(-3px)}
+.ambient-btn.on{background:var(--gold);color:var(--navy);animation:ambpulse 2s ease-in-out infinite}
+@keyframes ambpulse{50%{box-shadow:0 0 0 8px rgba(224,185,77,.18)}}
+
 /* ---- Anthem ---- */
 .anthem{display:inline-flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:40px;padding:.55rem 1.1rem;color:#fff;cursor:pointer;font-size:.88rem;margin-top:1.4rem;transition:.2s}
 .anthem:hover{background:rgba(224,185,77,.18)}
