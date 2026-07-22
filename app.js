@@ -40,27 +40,50 @@ function fetchGifts(){
 }
 function giveGift(name,amount){
   return fetchGifts().then(function(list){
-    list.unshift({ id:'g'+Date.now()+Math.floor(Math.random()*9999), to:String(name).trim(), amount:Math.round(+amount||0), at:Date.now() });
+    var gift={ id:'g'+Date.now()+Math.floor(Math.random()*9999), to:String(name).trim(), amount:Math.round(+amount||0), at:Date.now() };
+    list.unshift(gift);
+    // instant delivery to a matching account on THIS device (marks it claimed so it won't double)
+    try{
+      Accounts.all().forEach(function(a){
+        if(giftNameMatches(gift.to, a.name)){
+          Bank.addTo(a.id, gift.amount);
+          var cl; try{ cl=JSON.parse(localStorage.getItem('elz_claimed_gifts'))||[]; }catch(e){ cl=[]; }
+          if(cl.indexOf(gift.id)<0){ cl.push(gift.id); localStorage.setItem('elz_claimed_gifts', JSON.stringify(cl)); }
+        }
+      });
+    }catch(e){}
     return fetch(GIFTS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(list.slice(0,500))})
-      .then(function(){ return true; }).catch(function(){ return false; });
+      .then(function(){ return gift; }).catch(function(){ return gift; }); // still delivered locally even if network fails
   });
 }
+// flexible name match so the President doesn't need the exact full name
+function giftNameMatches(giftTo, acctName){
+  var g=String(giftTo||'').trim().toLowerCase(), a=String(acctName||'').trim().toLowerCase();
+  if(g.length<2 || !a) return false;
+  if(g===a) return true;
+  if(a.split(/\s+/)[0]===g) return true;   // matches first name
+  if(a.indexOf(g)===0) return true;         // account name starts with what was typed
+  return false;
+}
 // A logged-in citizen claims any gifts addressed to their name (once each)
+var _claimingGifts=false;
 function claimGifts(){
   var acct=Account.get(); if(!acct || !acct.name || acct.president) return Promise.resolve(0);
-  var myName=acct.name.trim().toLowerCase();
-  var claimed; try{ claimed=JSON.parse(localStorage.getItem('elz_claimed_gifts'))||[]; }catch(e){ claimed=[]; }
+  if(_claimingGifts) return Promise.resolve(0);   // never run two claims at once (no double-credit)
+  _claimingGifts=true;
   return fetchGifts().then(function(gifts){
+    var claimed; try{ claimed=JSON.parse(localStorage.getItem('elz_claimed_gifts'))||[]; }catch(e){ claimed=[]; }
     var added=0;
     gifts.forEach(function(g){
-      if(g && g.id && String(g.to||'').trim().toLowerCase()===myName && claimed.indexOf(g.id)<0){
+      if(g && g.id && claimed.indexOf(g.id)<0 && giftNameMatches(g.to, acct.name)){
         Bank.add(g.amount); claimed.push(g.id); added+=(+g.amount||0);
       }
     });
     if(added>0){ try{ localStorage.setItem('elz_claimed_gifts', JSON.stringify(claimed)); }catch(e){}
       if(typeof toast==='function') toast('💰 You received '+added.toLocaleString()+' ★ from the President!'); }
+    _claimingGifts=false;
     return added;
-  }).catch(function(){ return 0; });
+  }).catch(function(){ _claimingGifts=false; return 0; });
 }
 
 /* ---- Professions (Work → minigames) ---- */
@@ -155,7 +178,9 @@ var Bank={
   },
   add(n){ if(this.isUnlimited()) return UNLIMITED; var v=this.get()+Math.round(+n||0); if(v<0)v=0; try{ localStorage.setItem(this.key(), v); }catch(e){} return v; },
   spend(n){ if(this.isUnlimited()) return true; n=Math.round(+n||0); if(this.get()<n) return false; try{ localStorage.setItem(this.key(), this.get()-n); }catch(e){} return true; },
-  display(){ return this.isUnlimited() ? '∞' : this.get().toLocaleString(); }
+  display(){ return this.isUnlimited() ? '∞' : this.get().toLocaleString(); },
+  // credit a specific account's balance (used when the President gifts money on the same device)
+  addTo(ownerId,n){ try{ var k='elz_balance_'+ownerId; var raw=localStorage.getItem(k); var cur=raw===null?START_BALANCE:Math.max(0,parseInt(raw,10)||0); localStorage.setItem(k, cur+Math.round(+n||0)); }catch(e){} }
 };
 
 /* ---- Inventory (things you bought, per account) ---- */
