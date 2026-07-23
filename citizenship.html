@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="stylesheet" href="styles.css?v=17">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
 </head>
 <body>
@@ -110,16 +110,6 @@
     </div>
   </section>
 
-  <section class="reveal">
-    <div class="section-head"><div class="kick">Hall of Records</div><h2 class="section-title">Wall of Citizens</h2><p class="section-lead"><span id="wallCount">3</span> citizens on the public registry, visible to the whole world.</p></div>
-    <div class="wall" id="wall"></div>
-    <div class="form-card" style="max-width:520px;margin-top:2rem">
-      <form id="removeForm">
-        <div class="field"><label for="removeName">Leave the wall - type your full name to remove your citizenship</label><input id="removeName" type="text" placeholder="e.g. Anatoly Kirilenko" required></div>
-        <button type="submit" class="btn danger" style="width:100%;justify-content:center">🗑️ Remove Me From the Wall</button>
-      </form>
-    </div>
-  </section>
 
 </main>
 
@@ -132,8 +122,8 @@
   <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
 </footer>
 
-<script src="app.js?v=16"></script>
-<script src="i18n.js?v=16"></script>
+<script src="app.js?v=17"></script>
+<script src="i18n.js?v=17"></script>
 <script>
 var faces=['🙂','😎','🤩','🦸','🤴','🐕'];
 var photoData=null;
@@ -295,27 +285,6 @@ function showSavedID(rec){
   var p=document.getElementById('passport'); p.classList.add('show');
   p.scrollIntoView({behavior:'smooth',block:'center'});
 }
-// ---- Remove yourself from the wall by name (worldwide) ----
-document.getElementById('removeForm').addEventListener('submit',function(e){
-  e.preventDefault();
-  var form=this;
-  var q=document.getElementById('removeName').value.trim().toLowerCase();
-  Promise.all([loadPublicCitizens(),loadSharedCitizens()]).then(function(res){
-    var pub=res[0], shared=res[1];
-    if(pub.some(function(c){ return (c.name||'').toLowerCase()===q; })){
-      toast('👑 Official citizens can only be removed by the President.'); return;
-    }
-    var found=shared.find(function(c){ return (c.name||'').toLowerCase()===q; });
-    var localFound=Registry.all().some(function(c){ return (c.name||'').toLowerCase()===q; });
-    if(!found && !localFound){ toast('No citizen with that name on the wall.'); return; }
-    if(!confirm('Remove '+((found&&found.name)||q)+' from the Wall of Citizens everywhere? This cannot be undone.')) return;
-    Registry.remove(function(c){ return (c.name||'').toLowerCase()===q; });
-    removeSharedCitizen(function(c){ return (c.name||'').toLowerCase()===q; }).then(function(){
-      renderWall(); form.reset(); toast('🗑️ Removed from the wall. Farewell, citizen.');
-    });
-  });
-});
-
 document.getElementById('findForm').addEventListener('submit',function(e){
   e.preventDefault();
   var q=document.getElementById('findName').value.trim().toLowerCase();

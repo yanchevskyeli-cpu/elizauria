@@ -19,6 +19,8 @@ var Account={
 };
 var PRESIDENT_ACCOUNT={ id:'acct-president-eli', name:'Eli Yanchevsky', president:true };
 var PRESIDENT_PASSWORD='Eli24032015!';
+var PM_ACCOUNT={ id:'acct-pm-netanel', name:'Netanel Yanchevsky', minister:true };
+var PM_PASSWORD='Netanel2026!'; // Prime Minister login (change any time)
 
 /* Saved citizen accounts on this device (so they can log back in) */
 var Accounts={
@@ -29,6 +31,8 @@ var Accounts={
   remove(id){ try{ localStorage.setItem(this.key, JSON.stringify(this.all().filter(function(a){ return a.id!==id; }))); }catch(e){} }
 };
 function isPresident(){ var a=Account.get(); return !!(a && (a.president || a.id===PRESIDENT_ACCOUNT.id)); }
+// a leader = President or Prime Minister (both can grant money)
+function isLeader(){ var a=Account.get(); return !!(a && (a.president || a.minister || a.id===PRESIDENT_ACCOUNT.id || a.id===PM_ACCOUNT.id)); }
 
 /* ---- Presidential gifts: money sent to a citizen, delivered on any device ---- */
 var GIFTS_URL='https://textdb.dev/api/data/elizauria-gifts-4d2f8a17-b6c3-49e1-9a52-8e0d3c7f1b6a';
@@ -68,7 +72,7 @@ function giftNameMatches(giftTo, acctName){
 // A logged-in citizen claims any gifts addressed to their name (once each)
 var _claimingGifts=false;
 function claimGifts(){
-  var acct=Account.get(); if(!acct || !acct.name || acct.president) return Promise.resolve(0);
+  var acct=Account.get(); if(!acct || !acct.name || acct.president || acct.minister) return Promise.resolve(0);
   if(_claimingGifts) return Promise.resolve(0);   // never run two claims at once (no double-credit)
   _claimingGifts=true;
   return fetchGifts().then(function(gifts){
@@ -158,7 +162,7 @@ var STORES=[
    The President, Prime Minister and the National Dog have unlimited stars. */
 var START_BALANCE=10000;
 var UNLIMITED=Number.MAX_SAFE_INTEGER; // treated as "unlimited"
-var UNLIMITED_ACCOUNTS=['acct-president-eli']; // logged-in leader account
+var UNLIMITED_ACCOUNTS=['acct-president-eli','acct-pm-netanel']; // logged-in leader accounts
 var UNLIMITED_NAMES=['eli yanchevsky','netanel yanchevsky','boni']; // by account name too
 var Bank={
   key(){ return 'elz_balance_'+Account.ownerId(); },
@@ -421,11 +425,17 @@ document.addEventListener('DOMContentLoaded',()=>{
     co.observe(el);
   });
 
-  // real population: same shared registry on every device
-  const pop=document.getElementById('livePop');
-  if(pop) Promise.all([loadPublicCitizens(),loadSharedCitizens()]).then(([pub,shared])=>{
-    pop.textContent=(pub.length+shared.length).toLocaleString();
-  });
+  // national population: an ever-rising counter (persists and keeps growing)
+  var pop=document.getElementById('livePop');
+  if(pop){
+    var n; try{ n=parseInt(localStorage.getItem('elz_pop'),10); }catch(e){}
+    if(!n || isNaN(n)) n=14200000;
+    var last; try{ last=parseInt(localStorage.getItem('elz_pop_t'),10); }catch(e){}
+    if(last && !isNaN(last)) n += Math.floor((Date.now()-last)/1000)*2; // grow while you were away
+    var save=function(){ try{ localStorage.setItem('elz_pop', n); localStorage.setItem('elz_pop_t', Date.now()); }catch(e){} };
+    pop.textContent=n.toLocaleString(); save();
+    setInterval(function(){ n += 1+Math.floor(Math.random()*4); pop.textContent=n.toLocaleString(); save(); }, 1500);
+  }
 
   // Elizapolis clock
   const clk=document.getElementById('clock');
