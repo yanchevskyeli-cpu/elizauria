@@ -20,7 +20,7 @@ var Account={
 var PRESIDENT_ACCOUNT={ id:'acct-president-eli', name:'Eli Yanchevsky', president:true };
 var PRESIDENT_PASSWORD='Eli24032015!';
 var PM_ACCOUNT={ id:'acct-pm-netanel', name:'Netanel Yanchevsky', minister:true };
-var PM_PASSWORD='Netanel2026!'; // Prime Minister login (change any time)
+var PM_PASSWORD='Negus551'; // Prime Minister login (change any time)
 
 /* Saved citizen accounts on this device (so they can log back in) */
 var Accounts={
