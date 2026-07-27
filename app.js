@@ -385,9 +385,9 @@ function playAnthem(btn){
       ['E5',1],['E5',1],['D5',1],['C5',1],  ['D5',1],['E5',1],['F5',2],
       ['G5',2],['E5',1],['C5',1],   ['D5',3],['R',1],
       ['E5',1],['D5',1],['C5',1],['D5',1],  ['E5',1],['F5',1],['G5',2],
-      ['C5',1],['D5',1],['E5',1],['F5',1],  ['G5',4],
-      ['R', 0.64/beat],   // 0.64-second gap between the G and the final C
-      ['C5',4]            // final resolving C
+      ['C5',1],['D5',1],['E5',1],['F5',1],
+      ['G5', 0.64/beat],  // the G note, held 0.64 s...
+      ['C5',4]            // ...then the final C plays 0.64 s after the G
     ];
     var chords=['C3','C3','F3','G3','C3','A3','F3','G3','C3','C3','F3','G3','C3','C3','G3','C3','C3'];
     var t=0;
@@ -446,16 +446,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     co.observe(el);
   });
 
-  // national population: an ever-rising counter (persists and keeps growing)
+  // national population: starts at 400, rises by 3-5 every couple of seconds
   var pop=document.getElementById('livePop');
   if(pop){
-    var n; try{ n=parseInt(localStorage.getItem('elz_pop'),10); }catch(e){}
-    if(!n || isNaN(n)) n=14200000;
-    var last; try{ last=parseInt(localStorage.getItem('elz_pop_t'),10); }catch(e){}
-    if(last && !isNaN(last)) n += Math.floor((Date.now()-last)/1000)*2; // grow while you were away
-    var save=function(){ try{ localStorage.setItem('elz_pop', n); localStorage.setItem('elz_pop_t', Date.now()); }catch(e){} };
+    var n; try{ n=parseInt(localStorage.getItem('elz_pop2'),10); }catch(e){}
+    if(!n || isNaN(n)) n=400;
+    var last; try{ last=parseInt(localStorage.getItem('elz_pop2_t'),10); }catch(e){}
+    if(last && !isNaN(last)) n += Math.floor((Date.now()-last)/2000)*4; // ~4 per 2s while you were away
+    var save=function(){ try{ localStorage.setItem('elz_pop2', n); localStorage.setItem('elz_pop2_t', Date.now()); }catch(e){} };
     pop.textContent=n.toLocaleString(); save();
-    setInterval(function(){ n += 1+Math.floor(Math.random()*4); pop.textContent=n.toLocaleString(); save(); }, 1500);
+    setInterval(function(){ n += 3+Math.floor(Math.random()*3); pop.textContent=n.toLocaleString(); save(); }, 2000);
   }
 
   // Elizapolis clock
