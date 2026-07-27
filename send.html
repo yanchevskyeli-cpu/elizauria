@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bank Balance — Elizauria</title>
-<meta name="description" content="Your Elizaurian bank balance, earned from work.">
+<title>Send Money — Elizauria</title>
+<meta name="description" content="Send Golden Stars from your balance to another citizen.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div class="ribbon">National Bank of Elizauria · Ⓔ The Golden Star</div>
+<div class="ribbon">National Bank of Elizauria · Transfer</div>
 
 <header class="site">
   <div class="nav-inner">
@@ -30,7 +30,7 @@
       <a href="tourism.html">Visit</a>
       <a href="games.html">Games</a>
       <a href="work.html">Work</a>
-      <a href="bank.html" class="active">Bank</a>
+      <a href="bank.html">Bank</a>
       <a href="shop.html">Shop</a>
       <a href="news.html">News</a>
       <a href="index.html" title="Language">🌐</a>
@@ -40,22 +40,20 @@
 
 <section class="hero" style="padding:3.8rem 1.25rem 3rem">
   <div class="aurora"></div>
-  <h1>Bank <span class="shine">Balance</span></h1>
-  <p class="sub" id="bankWho">Every point you earn at work is saved here, in your account.</p>
+  <h1>Send <span class="shine">Money</span></h1>
+  <p class="sub">Send Golden Stars from your own balance to another citizen.</p>
+  <div class="cta-row"><span class="btn ghost">Your Balance: <strong id="sendBal" style="margin-left:.4rem">0</strong> ★</span></div>
 </section>
 
 <main>
   <section class="reveal">
-    <div class="balance-wrap">
-      <div class="balance-label">Your Balance</div>
-      <div class="balance-oval">
-        <span class="amount" id="balAmount">0</span>
-        <span class="unit">Golden Stars ★</span>
-      </div>
-      <p style="color:var(--muted);margin-top:1.6rem">Earn more by working a job.</p>
-      <a href="work.html" class="btn gold" style="margin-top:.4rem">💼 Go to Work</a>
-      <a href="send.html" class="btn navy" style="margin-top:.4rem">💸 Send Money To…</a>
-      <a href="give.html" class="btn navy" id="giveBtn" style="margin-top:.4rem;display:none">👑 Give Money To…</a>
+    <div class="form-card">
+      <form id="sendForm">
+        <div class="field"><label for="toName">Who do you want to send money to?</label><input id="toName" type="text" placeholder="Citizen's full name" required></div>
+        <div class="field"><label for="amount">How much?</label><input id="amount" type="number" min="1" placeholder="Number of stars ★" required></div>
+        <button type="submit" class="btn gold" style="width:100%;justify-content:center">💸 Send the Stars</button>
+      </form>
+      <p style="margin-top:.9rem;font-size:.8rem;color:var(--muted)">The stars are taken from your balance and delivered to that citizen the next time they open the site on their account.</p>
     </div>
   </section>
 </main>
@@ -72,16 +70,23 @@
 <script src="app.js?v=19"></script>
 <script src="i18n.js?v=19"></script>
 <script>
-(function(){
-  var el=document.getElementById('balAmount');
-  var acct=Account.get();
-  if(acct){ document.getElementById('bankWho').textContent='The account of '+acct.name+(acct.president?' 👑':'')+'. Every point you earn at work is saved here.'; }
-  if(isLeader()){ document.getElementById('giveBtn').style.display=''; } // President & Prime Minister see this
-  if(Bank.isUnlimited()){ el.style.fontSize='4.4rem'; el.textContent='∞'; return; }
-  // count-up animation
-  var target=Bank.get(), cur=0, step=Math.max(1,Math.ceil(target/50));
-  (function tick(){ cur+=step; if(cur>=target){cur=target;} el.textContent=cur.toLocaleString(); if(cur<target) requestAnimationFrame(tick); })();
-})();
+function refreshBal(){ document.getElementById('sendBal').textContent=Bank.display(); }
+refreshBal();
+document.getElementById('sendForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=document.getElementById('toName').value.trim();
+  var amount=Math.round(+document.getElementById('amount').value||0);
+  if(!name){ toast('Type a citizen\'s name.'); return; }
+  if(amount<1){ toast('Enter an amount of at least 1 ★.'); return; }
+  if(!Bank.isUnlimited() && Bank.get()<amount){ toast('💸 Not enough stars. You have '+Bank.display()+' ★.'); return; }
+  var form=this;
+  Bank.spend(amount);              // take it from the sender
+  refreshBal();
+  giveGift(name, amount).then(function(gift){
+    if(gift){ confetti(); toast('💸 Sent '+amount.toLocaleString()+' ★ to '+name+'! Your balance: '+Bank.display()+' ★'); form.reset(); }
+    else { Bank.add(amount); refreshBal(); toast('⚠️ Could not send, your stars were refunded.'); }
+  });
+});
 </script>
 </body>
 </html>
