@@ -326,6 +326,18 @@ footer.site{background:var(--navy);color:#c3cbe6;margin-top:2rem;border-top:3px 
 .balance-oval .amount{font-family:var(--serif);font-size:3.4rem;font-weight:800;color:var(--gold-2);line-height:1}
 .balance-oval .unit{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:#c3cbe6;margin-top:.4rem}
 
+/* Charity medal */
+.medal-wrap{text-align:center}
+.medal{width:120px;height:120px;border-radius:50%;margin:0 auto;
+  background:radial-gradient(circle at 50% 35%,#3a67e0,#0f2f8f 70%,#0a1f66);
+  border:5px solid var(--gold);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 12px 30px -10px rgba(20,50,160,.7),inset 0 0 22px rgba(0,0,0,.35);position:relative}
+.medal::before{content:"";position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  width:26px;height:26px;background:linear-gradient(180deg,var(--gold-2),var(--gold-deep));clip-path:polygon(0 0,100% 0,100% 70%,50% 100%,0 70%)}
+.medal .star{font-size:3.4rem;color:var(--gold-2);text-shadow:0 2px 6px rgba(0,0,0,.4);line-height:1}
+.medal-amt{margin-top:.9rem;font-family:var(--serif);color:var(--navy);font-size:1.3rem;font-weight:700}
+.medal-amt small{display:block;font-family:var(--sans);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:.15rem}
+
 /* Work professions */
 .job-card{background:#fff;border:1px solid var(--cream-2);border-radius:var(--r);padding:1.6rem;text-align:center;box-shadow:var(--shadow-md);transition:.25s;border-top:4px solid var(--gold)}
 .job-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}

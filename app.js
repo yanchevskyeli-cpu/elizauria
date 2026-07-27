@@ -69,6 +69,26 @@ function giftNameMatches(giftTo, acctName){
   if(a.indexOf(g)===0) return true;         // account name starts with what was typed
   return false;
 }
+/* ---- National Charity Fund (shared total everyone sees) ---- */
+var CHARITY_URL='https://textdb.dev/api/data/elizauria-charity-5b9e2c74-1a3f-4d80-9c6e-7f2a8b1d0e33';
+function myDonations(){ try{ return parseInt(localStorage.getItem('elz_donated'),10)||0; }catch(e){ return 0; } }
+function fetchCharityTotal(){
+  return fetch(CHARITY_URL,{headers:{'accept':'text/plain'},cache:'no-store'})
+    .then(function(r){return r.text();})
+    .then(function(t){ var n=parseInt(t,10); return isNaN(n)?0:n; })
+    .catch(function(){ return null; });
+}
+function donateCharity(amount){
+  amount=Math.round(+amount||0);
+  return fetchCharityTotal().then(function(total){
+    if(total===null) total=0;
+    var next=total+amount;
+    try{ localStorage.setItem('elz_donated', String(myDonations()+amount)); }catch(e){}
+    return fetch(CHARITY_URL,{method:'POST',headers:{'content-type':'text/plain'},body:String(next)})
+      .then(function(){ return next; }).catch(function(){ return next; });
+  });
+}
+
 // A logged-in citizen claims any gifts addressed to their name (once each)
 var _claimingGifts=false;
 function claimGifts(){
@@ -366,7 +386,8 @@ function playAnthem(btn){
       ['G5',2],['E5',1],['C5',1],   ['D5',3],['R',1],
       ['E5',1],['D5',1],['C5',1],['D5',1],  ['E5',1],['F5',1],['G5',2],
       ['C5',1],['D5',1],['E5',1],['F5',1],  ['G5',4],
-      ['C5',4]   // final resolving C
+      ['R', 0.64/beat],   // 0.64-second gap between the G and the final C
+      ['C5',4]            // final resolving C
     ];
     var chords=['C3','C3','F3','G3','C3','A3','F3','G3','C3','C3','F3','G3','C3','C3','G3','C3','C3'];
     var t=0;
