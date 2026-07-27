@@ -72,17 +72,25 @@ function giftNameMatches(giftTo, acctName){
 /* ---- National Charity Fund (shared total everyone sees) ---- */
 var CHARITY_URL='https://textdb.dev/api/data/elizauria-charity-5b9e2c74-1a3f-4d80-9c6e-7f2a8b1d0e33';
 function myDonations(){ try{ return parseInt(localStorage.getItem('elz_donated'),10)||0; }catch(e){ return 0; } }
+function charityCacheGet(){ try{ return parseInt(localStorage.getItem('elz_charity_cache'),10)||0; }catch(e){ return 0; } }
+function charityCacheSet(v){ try{ localStorage.setItem('elz_charity_cache', String(v)); }catch(e){} }
+// Donations only ever increase, so keep the HIGHEST value we've seen (remote or cached).
+// This stops the shared service's occasional empty responses from showing 0.
 function fetchCharityTotal(){
   return fetch(CHARITY_URL,{headers:{'accept':'text/plain'},cache:'no-store'})
     .then(function(r){return r.text();})
-    .then(function(t){ var n=parseInt(t,10); return isNaN(n)?0:n; })
-    .catch(function(){ return null; });
+    .then(function(t){
+      var n=parseInt(t,10), cache=charityCacheGet();
+      if(!isNaN(n)){ var m=Math.max(n,cache); charityCacheSet(m); return m; }
+      return cache;
+    })
+    .catch(function(){ return charityCacheGet(); });
 }
 function donateCharity(amount){
   amount=Math.round(+amount||0);
   return fetchCharityTotal().then(function(total){
-    if(total===null) total=0;
-    var next=total+amount;
+    var next=(total||0)+amount;
+    charityCacheSet(next);
     try{ localStorage.setItem('elz_donated', String(myDonations()+amount)); }catch(e){}
     return fetch(CHARITY_URL,{method:'POST',headers:{'content-type':'text/plain'},body:String(next)})
       .then(function(){ return next; }).catch(function(){ return next; });
