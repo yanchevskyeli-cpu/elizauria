@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Charity — Elizauria</title>
-<meta name="description" content="The National Charity Fund of Elizauria.">
+<title>Contact — Elizauria</title>
+<meta name="description" content="Contact the Sovereign Republic of Elizauria.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<div class="ribbon">National Charity Fund · Every Star Counts</div>
+<div class="ribbon">Office of Communications · Reach Elizauria</div>
 
 <header class="site">
   <div class="nav-inner">
@@ -32,38 +32,39 @@
       <a href="work.html">Work</a>
       <a href="bank.html">Bank</a>
       <a href="shop.html">Shop</a>
-      <a href="charity.html" class="active">Charity</a>
-      <a href="contact.html">Contact</a>
+      <a href="charity.html">Charity</a>
+      <a href="contact.html" class="active">Contact</a>
       <a href="news.html">News</a>
-      <a href="index.html" title="Language">🌐</a>
     </nav>
   </div>
 </header>
 
 <section class="hero" style="padding:3.8rem 1.25rem 3rem">
   <div class="aurora"></div>
-  <h1>National <span class="shine">Charity</span></h1>
-  <p class="sub">Every Golden Star donated helps the whole nation. This total is shared by every Elizaurian.</p>
+  <h1>Contact <span class="shine">Us</span></h1>
+  <p class="sub">Reach the Office of the Founders of Elizauria.</p>
 </section>
 
 <main>
   <section class="reveal">
-    <div class="balance-wrap">
-      <div class="balance-label">Total Donated by the Nation</div>
-      <div class="balance-oval">
-        <span class="amount" id="charityTotal">0</span>
-        <span class="unit">Golden Stars ★</span>
-      </div>
-    </div>
-  </section>
+    <div class="contact-grid">
+      <a class="contact-card email" href="mailto:elizauriail@gmail.com">
+        <div class="cc-top">
+          <svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><rect x="4" y="9" width="40" height="30" rx="4" fill="#fff"/><path d="M6 12l18 13L42 12" fill="none" stroke="#ea4335" stroke-width="3"/><path d="M6 12v24M42 12v24" stroke="#c5221f" stroke-width="3"/></svg>
+          <span class="cc-tag">Email</span>
+        </div>
+        <div class="cc-handle">elizauriail@gmail.com</div>
+        <div class="cc-hint">Tap to send us an email</div>
+      </a>
 
-  <section class="reveal">
-    <div class="form-card">
-      <form id="donateForm">
-        <div class="field"><label for="amount">How many stars do you want to donate?</label><input id="amount" type="number" min="1" placeholder="Number of stars ★" required></div>
-        <button type="submit" class="btn gold" style="width:100%;justify-content:center">💝 Donate</button>
-      </form>
-      <p style="margin-top:.9rem;font-size:.85rem;color:var(--muted)">Your balance: <strong id="myBal">0</strong> ★ · You've donated: <strong id="myDon">0</strong> ★</p>
+      <a class="contact-card discord" href="https://discord.com" target="_blank" rel="noopener" id="discordCard">
+        <div class="cc-top">
+          <svg viewBox="0 0 48 48" width="36" height="28" aria-hidden="true"><path d="M40 10a34 34 0 0 0-9-3l-1 2a25 25 0 0 0-12 0l-1-2a34 34 0 0 0-9 3C2 20 1 30 2 39a34 34 0 0 0 10 4l2-3a20 20 0 0 1-4-2l1-1a24 24 0 0 0 26 0l1 1a20 20 0 0 1-4 2l2 3a34 34 0 0 0 10-4c1-11-1-21-7-29zM18 32a4 4 0 0 1 0-8 4 4 0 0 1 0 8zm12 0a4 4 0 0 1 0-8 4 4 0 0 1 0 8z" fill="#fff"/></svg>
+          <span class="cc-tag">Discord</span>
+        </div>
+        <div class="cc-handle">eli6645</div>
+        <div class="cc-hint" id="dcHint">Tap to copy the username</div>
+      </a>
     </div>
   </section>
 </main>
@@ -80,25 +81,11 @@
 <script src="app.js?v=26"></script>
 <script src="i18n.js?v=26"></script>
 <script>
-function refreshTotal(){ fetchCharityTotal().then(function(t){ document.getElementById('charityTotal').textContent=(t===null?0:t).toLocaleString(); }); }
-function refreshMine(){ document.getElementById('myBal').textContent=Bank.display(); document.getElementById('myDon').textContent=myDonations().toLocaleString(); }
-refreshTotal(); refreshMine();
-setInterval(refreshTotal, 5000); // keep the shared total fresh
-
-document.getElementById('donateForm').addEventListener('submit',function(e){
+document.getElementById('discordCard').addEventListener('click',function(e){
   e.preventDefault();
-  var amount=Math.round(+document.getElementById('amount').value||0);
-  if(amount<1){ toast('Enter at least 1 ★ to donate.'); return; }
-  if(!Bank.isUnlimited() && Bank.get()<amount){ toast('💸 Not enough stars. You have '+Bank.display()+' ★.'); return; }
-  var form=this;
-  Bank.spend(amount);            // take it from your balance
-  refreshMine();
-  donateCharity(amount).then(function(total){
-    document.getElementById('charityTotal').textContent=(total||0).toLocaleString();
-    refreshMine();
-    confetti(); toast('💝 Thank you! You donated '+amount.toLocaleString()+' ★. You earned the Charity Medal!');
-    form.reset();
-  });
+  var u='eli6645';
+  if(navigator.clipboard){ navigator.clipboard.writeText(u).then(function(){ toast('📋 Copied: '+u); }).catch(function(){ toast('Discord: '+u); }); }
+  else toast('Discord: '+u);
 });
 </script>
 </body>

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=25">
+<link rel="stylesheet" href="styles.css?v=26">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
 </head>
 <body>
@@ -33,6 +33,7 @@
       <a href="bank.html">Bank</a>
       <a href="shop.html">Shop</a>
       <a href="charity.html">Charity</a>
+      <a href="contact.html">Contact</a>
       <a href="news.html">News</a>
       <a href="index.html" title="Language">🌐</a>
     </nav>
@@ -108,13 +109,13 @@
   <div class="aurora"></div>
   <div class="foot-inner">
     <div><h4>Elizauria</h4><p style="font-size:.9rem;color:#9aa4c4">Founded 2026. "From a bedroom, a nation."</p></div>
-    <div><h4>Explore</h4><a href="founders.html">Leaders</a><a href="citizenship.html">Citizenship</a><a href="passport.html">Passport</a><a href="tourism.html">Visit</a><a href="games.html">Games</a><a href="work.html">Work</a><a href="bank.html">Bank</a><a href="shop.html">Shop</a><a href="charity.html">Charity</a><a href="news.html">News</a></div>
+    <div><h4>Explore</h4><a href="founders.html">Leaders</a><a href="citizenship.html">Citizenship</a><a href="passport.html">Passport</a><a href="tourism.html">Visit</a><a href="games.html">Games</a><a href="work.html">Work</a><a href="bank.html">Bank</a><a href="shop.html">Shop</a><a href="charity.html">Charity</a><a href="contact.html">Contact</a><a href="news.html">News</a></div>
   </div>
   <div class="foot-bottom">© 2026 Sovereign Republic of Elizauria</div>
 </footer>
 
-<script src="app.js?v=25"></script>
-<script src="i18n.js?v=25"></script>
+<script src="app.js?v=26"></script>
+<script src="i18n.js?v=26"></script>
 <script>
 /* ================= GAME 1: STAMP RUSH ================= */
 (function(){
@@ -256,24 +257,79 @@
   function updBal(){ document.getElementById('jobBal').textContent=Bank.display(); }
   updBal();
 
+  // Some jobs are answer-the-question quizzes instead of tap games
+  var JOB_QUIZ={
+    cashier:[
+      {q:'A total is 8★ and the customer pays 10★. How much change?',a:['2★','3★','1★','5★'],c:0},
+      {q:'What do you scan an item with?',a:['A barcode scanner','A hammer','A spoon','A phone'],c:0},
+      {q:'One snack costs 4★. What do two cost?',a:['8★','6★','4★','10★'],c:0},
+      {q:'A customer has no money. You should…',a:['Politely say no sale','Give it for free','Take their shoes','Run away'],c:0}
+    ],
+    financier:[
+      {q:'You buy for 5★ and sell for 9★. What is the profit?',a:['4★','14★','5★','9★'],c:0},
+      {q:'Money you keep after costs is called…',a:['Profit','Loss','Rent','Nothing'],c:0},
+      {q:'10★ split evenly between 2 friends is…',a:['5★ each','10★ each','2★ each','20★ each'],c:0},
+      {q:'If prices are about to rise, it is better to…',a:['Have bought earlier','Wait forever','Do nothing','Panic'],c:0}
+    ],
+    pilot:[
+      {q:'Before flying you should check the…',a:['Weather','Fridge','TV','Sofa'],c:0},
+      {q:'A plane takes off from a…',a:['Runway','Kitchen','Pool','Forest'],c:0},
+      {q:'Up in the sky a plane flies through…',a:['Clouds','Walls','Tunnels','Water'],c:0},
+      {q:'The person flying the plane is the…',a:['Pilot','Chef','Farmer','Doctor'],c:0}
+    ],
+    doctor:[
+      {q:'Someone has a small cut. You give them a…',a:['Bandage','Pizza','Kite','Hammer'],c:0},
+      {q:'To listen to a heartbeat you use a…',a:['Stethoscope','Spoon','Camera','Ball'],c:0},
+      {q:'Feeling sick? The best idea is to…',a:['Rest and drink water','Run a marathon','Skip sleep','Eat only candy'],c:0},
+      {q:'Medicine should be given by a…',a:['Doctor','Stranger','Toy robot','Nobody'],c:0}
+    ]
+  };
+
   arena.innerHTML=PROFESSIONS.map(function(p){
     var best=+(localStorage.getItem('elz_job_'+p.id)||0);
     return '<div class="game-panel" id="job-'+p.id+'">'
       +'<h3>'+p.icon+' '+p.name+'</h3>'
-      +'<p class="desc">'+p.desc+'</p>'
+      +'<p class="desc">'+(JOB_QUIZ[p.id]?'Answer the questions to earn points!':p.desc)+'</p>'
       +'<div class="game-hud">'
       +'<div><div class="v" id="'+p.id+'Score">0</div><div class="k">Points</div></div>'
       +'<div><div class="v" id="'+p.id+'Time">20</div><div class="k">Seconds</div></div>'
       +'<div><div class="v" id="'+p.id+'Best">'+best+'</div><div class="k">Best</div></div>'
       +'</div>'
-      +(p.math
+      +((p.math||JOB_QUIZ[p.id])
         ? '<div id="'+p.id+'Quiz" style="max-width:420px;margin:0 auto"></div>'
         : '<div class="stamp-area" id="'+p.id+'Area"></div>')
       +'<button class="btn gold" id="'+p.id+'Start" style="margin-top:1rem">▶ Start Working</button>'
       +'</div>';
   }).join('');
 
-  PROFESSIONS.forEach(function(p){ p.math ? setupMath(p) : setupTap(p); });
+  PROFESSIONS.forEach(function(p){ p.math ? setupMath(p) : (JOB_QUIZ[p.id] ? setupJobQuiz(p) : setupTap(p)); });
+
+  /* ---- Answer-the-question game (cashier, financier, pilot, doctor) ---- */
+  function setupJobQuiz(p){
+    var box=document.getElementById(p.id+'Quiz');
+    var startBtn=document.getElementById(p.id+'Start');
+    var score=0,time=25,timer=null,playing=false, qs=JOB_QUIZ[p.id];
+    function ask(){
+      var q=qs[Math.floor(Math.random()*qs.length)];
+      box.innerHTML='<p style="font-weight:700;color:var(--navy);margin-bottom:.7rem">'+q.q+'</p>'
+        +q.a.map(function(a,j){ return '<button class="quiz-opt" data-j="'+j+'">'+a+'</button>'; }).join('');
+      box.querySelectorAll('.quiz-opt').forEach(function(b){
+        b.addEventListener('click',function(){
+          if(!playing) return;
+          if(+b.getAttribute('data-j')===q.c){ score++; document.getElementById(p.id+'Score').textContent=score; beep(700,0.1,'triangle',0,0.18); ask(); }
+          else { thud(); b.classList.add('wrong'); }
+        });
+      });
+    }
+    function end(){ playing=false; clearInterval(timer); box.innerHTML=''; startBtn.style.display=''; finish(p,score); }
+    startBtn.addEventListener('click',function(){
+      score=0; time=25; playing=true;
+      document.getElementById(p.id+'Score').textContent=0;
+      document.getElementById(p.id+'Time').textContent=time;
+      startBtn.style.display='none'; ask();
+      timer=setInterval(function(){ time--; document.getElementById(p.id+'Time').textContent=time; if(time<=0) end(); },1000);
+    });
+  }
 
   function finish(p,score){
     var bestKey='elz_job_'+p.id, best=+(localStorage.getItem(bestKey)||0);
