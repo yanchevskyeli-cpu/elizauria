@@ -22,14 +22,57 @@ var PRESIDENT_PASSWORD='Eli24032015!';
 var PM_ACCOUNT={ id:'acct-pm-netanel', name:'Netanel Yanchevsky', minister:true };
 var PM_PASSWORD='Negus551!'; // Prime Minister login (change any time)
 
-/* Saved citizen accounts on this device (so they can log back in) */
+/* Citizen accounts. Local copy is a cache; the real list lives on the shared
+   server so accounts created on one device appear on every device. */
 var Accounts={
   key:'elz_accounts',
   all(){ try{ return JSON.parse(localStorage.getItem(this.key))||[]; }catch(e){ return []; } },
-  add(a){ var l=this.all(); l.push(a); try{ localStorage.setItem(this.key, JSON.stringify(l)); }catch(e){} },
+  save(l){ try{ localStorage.setItem(this.key, JSON.stringify(l)); }catch(e){} },
+  add(a){ var l=mergeAccounts([a], this.all()); this.save(l); },
   find(id){ return this.all().filter(function(a){ return a.id===id; })[0]; },
-  remove(id){ try{ localStorage.setItem(this.key, JSON.stringify(this.all().filter(function(a){ return a.id!==id; }))); }catch(e){} }
+  remove(id){ this.save(this.all().filter(function(a){ return a.id!==id; })); }
 };
+// weak hash so raw passwords aren't stored in the shared blob
+function hashPass(s){ var h=5381; s=String(s); for(var i=0;i<s.length;i++){ h=((h<<5)+h)+s.charCodeAt(i); h|=0; } return 'h'+(h>>>0).toString(36); }
+function passMatches(acc,val){ if(!acc) return false; if(acc.passHash) return hashPass(val)===acc.passHash; return acc.pass===val; }
+
+/* Shared worldwide account registry (textdb) */
+var ACCOUNTS_URL='https://textdb.dev/api/data/elizauria-accounts-7c1e9b46-2d80-4a53-8f19-3b6e0d2a5c88';
+function mergeAccounts(a,b){
+  var map={}, order=[];
+  (a||[]).concat(b||[]).forEach(function(x){ if(!x||!x.id) return; if(!(x.id in map)){ map[x.id]=x; order.push(x.id); } });
+  return order.map(function(k){ return map[k]; });
+}
+function fetchSharedAccounts(){
+  return fetch(ACCOUNTS_URL,{headers:{'accept':'application/json'},cache:'no-store'})
+    .then(function(r){return r.text();})
+    .then(function(t){ try{ var d=JSON.parse(t); return Array.isArray(d)?d:[]; }catch(e){ return []; } })
+    .catch(function(){ return []; });
+}
+// merge server + local cache, refresh cache, return the full list
+function loadAllAccounts(){
+  return fetchSharedAccounts().then(function(remote){
+    var merged=mergeAccounts(Accounts.all(), remote);
+    Accounts.save(merged);
+    return merged;
+  });
+}
+// push a new/updated account to the server so every device gets it
+function addSharedAccount(acc){
+  Accounts.add(acc);
+  return fetchSharedAccounts().then(function(remote){
+    var merged=mergeAccounts([acc], remote);
+    Accounts.save(mergeAccounts(merged, Accounts.all()));
+    return fetch(ACCOUNTS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(merged.slice(0,300))}).catch(function(){});
+  }).catch(function(){});
+}
+function removeSharedAccount(id){
+  Accounts.remove(id);
+  return fetchSharedAccounts().then(function(remote){
+    var next=remote.filter(function(a){ return a.id!==id; });
+    return fetch(ACCOUNTS_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(next.slice(0,300))}).catch(function(){});
+  }).catch(function(){});
+}
 function isPresident(){ var a=Account.get(); return !!(a && (a.president || a.id===PRESIDENT_ACCOUNT.id)); }
 // a leader = President or Prime Minister (both can grant money)
 function isLeader(){ var a=Account.get(); return !!(a && (a.president || a.minister || a.id===PRESIDENT_ACCOUNT.id || a.id===PM_ACCOUNT.id)); }

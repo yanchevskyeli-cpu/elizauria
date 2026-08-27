@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=23">
+<link rel="stylesheet" href="styles.css?v=24">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1533'/><polygon points='50,20 58,42 82,42 62,56 70,80 50,64 30,80 38,56 18,42 42,42' fill='%23e0b94d'/></svg>">
 <style>
   body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -60,23 +60,6 @@
 <div class="view on" id="vChoose">
   <h1 data-i18n>Choose an Account</h1>
   <div class="accounts" id="accountsRow"></div>
-  <button class="btn ghost" id="signInBtn" style="margin-top:2.4rem" data-i18n>🔑 Sign In with Name &amp; Password</button>
-</div>
-
-<!-- VIEW 5: sign in by name + password -->
-<div class="view" id="vSignin">
-  <form id="siForm" style="width:100%">
-    <div class="field-lg">
-      <label data-i18n>Your Name</label>
-      <input type="text" id="siName" autocomplete="off" required>
-    </div>
-    <div class="field-lg">
-      <label data-i18n>Type Your Password</label>
-      <input type="password" id="siPass" autocomplete="off" required>
-    </div>
-    <button type="submit" class="btn gold" style="width:100%;justify-content:center" data-i18n>Sign In</button>
-  </form>
-  <button class="back" id="siBack" data-i18n>← Back</button>
 </div>
 
 <!-- VIEW 2: password login (president or a saved citizen) -->
@@ -135,8 +118,8 @@
   <button class="back" id="suBack" data-i18n>← Back</button>
 </div>
 
-<script src="app.js?v=23"></script>
-<script src="i18n.js?v=23"></script>
+<script src="app.js?v=24"></script>
+<script src="i18n.js?v=24"></script>
 <script>
 function show(id){ document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on');}); document.getElementById(id).classList.add('on'); }
 function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); }
@@ -148,8 +131,12 @@ function avatarHtml(a,cls){
                  : '<span class="'+(cls||'initial')+'">'+esc((a.name||'?').trim().charAt(0).toUpperCase())+'</span>';
 }
 
-// Render: President circle, then saved citizen circles (with delete), then the + button
+// Render President + Prime Minister, then all citizen accounts (synced from the server)
 function renderAccounts(){
+  paintAccounts(Accounts.all());          // instant, from the local cache
+  loadAllAccounts().then(paintAccounts);  // then refresh with the worldwide list
+}
+function paintAccounts(list){
   var row=document.getElementById('accountsRow');
   var html='<button class="acc" data-login="president">'
     +'<span class="circle"><img src="president.jpg" alt="President"></span>'
@@ -157,7 +144,7 @@ function renderAccounts(){
     +'<button class="acc" data-login="minister">'
     +'<span class="circle"><img src="minister.jpg" alt="Prime Minister"></span>'
     +'<span class="lbl">Prime Minister</span></button>';
-  Accounts.all().forEach(function(a){
+  (list||[]).forEach(function(a){
     html+='<div class="acc-wrap"><button class="acc" data-login="'+esc(a.id)+'">'
       +'<span class="circle">'+avatarHtml(a)+'</span>'
       +'<span class="lbl small">'+esc(a.name)+'</span></button>'
@@ -188,8 +175,8 @@ function renderAccounts(){
       e.stopPropagation();
       var id=btn.getAttribute('data-del'), acc=Accounts.find(id);
       if(!acc) return;
-      if(!confirm('Delete the account "'+acc.name+'" from this device? This cannot be undone.')) return;
-      Accounts.remove(id);
+      if(!confirm('Delete the account "'+acc.name+'"? This removes it everywhere and cannot be undone.')) return;
+      removeSharedAccount(id);
       if((Account.get()||{}).id===id) Account.clear();
       renderAccounts();
       toast('🗑️ Account deleted.');
@@ -205,30 +192,6 @@ renderAccounts();
 document.getElementById('pwBack').addEventListener('click',function(){ show('vChoose'); });
 document.getElementById('suBack').addEventListener('click',function(){ show('vChoose'); });
 document.getElementById('edBack').addEventListener('click',function(){ show('vChoose'); });
-document.getElementById('siBack').addEventListener('click',function(){ show('vChoose'); });
-
-// ---- Sign in by name + password ----
-document.getElementById('signInBtn').addEventListener('click',function(){ show('vSignin'); document.getElementById('siName').value=''; document.getElementById('siPass').value=''; document.getElementById('siName').focus(); });
-document.getElementById('siForm').addEventListener('submit',function(e){
-  e.preventDefault();
-  var name=document.getElementById('siName').value.trim();
-  var pass=document.getElementById('siPass').value;
-  var lower=name.toLowerCase();
-  // President / Prime Minister by name
-  if(lower===PRESIDENT_ACCOUNT.name.toLowerCase()){
-    if(pass===PRESIDENT_PASSWORD){ Account.set(PRESIDENT_ACCOUNT); location.href='home.html'; return; }
-    toast('❌ Wrong password.'); return;
-  }
-  if(lower===PM_ACCOUNT.name.toLowerCase()){
-    if(pass===PM_PASSWORD){ Account.set(PM_ACCOUNT); location.href='home.html'; return; }
-    toast('❌ Wrong password.'); return;
-  }
-  // A saved citizen account on this device
-  var acc=Accounts.all().filter(function(a){ return (a.name||'').trim().toLowerCase()===lower; })[0];
-  if(!acc){ toast('❌ No account with that name on this device.'); return; }
-  if(acc.pass!==pass){ toast('❌ Wrong password.'); return; }
-  Account.set({id:acc.id,name:acc.name}); location.href='home.html';
-});
 
 // ---- Edit account (name + photo) ----
 var editId=null, edPhotoData=null;
@@ -258,16 +221,11 @@ document.getElementById('edForm').addEventListener('submit',function(e){
   var a=Accounts.find(editId); if(!a) return;
   var newName=document.getElementById('edName').value.trim();
   if(!newName){ toast('Please type a name.'); return; }
-  var oldName=a.name;
-  // update the stored account
-  var all=Accounts.all().map(function(x){ if(x.id===editId){ x.name=newName; x.photo=edPhotoData; } return x; });
-  try{ localStorage.setItem(Accounts.key, JSON.stringify(all)); }catch(err){}
-  // if this is the account you're logged into, update the session too
+  // update the stored account (name + photo) and sync to the server
+  a.name=newName; a.photo=edPhotoData;
+  Accounts.add(a);            // merge-updates the local copy by id
+  addSharedAccount(a);        // push the update to every device
   if((Account.get()||{}).id===editId) Account.set({id:editId,name:newName});
-  // update the Wall of Citizens entry (remove old, add renamed)
-  removeSharedCitizen(function(c){ return c.num===editId; }).then(function(){
-    return addSharedCitizen({ name:newName, role:'Citizen', initial:(newName.charAt(0)||'★').toUpperCase(), photo:edPhotoData, num:editId, date:new Date().toLocaleDateString(), at:Date.now() });
-  });
   renderAccounts(); show('vChoose'); toast('✅ Account updated.');
 });
 
@@ -282,7 +240,7 @@ document.getElementById('pwForm').addEventListener('submit',function(e){
     if(val===PM_PASSWORD){ Account.set(PM_ACCOUNT); location.href='home.html'; }
     else { toast('❌ Wrong password.'); document.getElementById('pwInput').value=''; }
   } else if(pending && pending.type==='citizen'){
-    if(val===pending.account.pass){ Account.set({id:pending.account.id,name:pending.account.name}); location.href='home.html'; }
+    if(passMatches(pending.account, val)){ Account.set({id:pending.account.id,name:pending.account.name}); location.href='home.html'; }
     else { toast('❌ Wrong password.'); document.getElementById('pwInput').value=''; }
   }
 });
@@ -327,14 +285,12 @@ document.getElementById('suForm').addEventListener('submit',function(e){
   if(!name){ toast('Please type your full name.'); return; }
   if(!checkRules()){ toast('❌ Your password needs a capital letter, a number, and a special character.'); return; }
   var id='acct-'+Date.now()+Math.floor(Math.random()*99999);
-  Accounts.add({ id:id, name:name, pass:pass, photo:suPhotoData });   // circle appears next to the President
+  var acc={ id:id, name:name, passHash:hashPass(pass), photo:suPhotoData, at:Date.now() };
   Account.set({ id:id, name:name });
 
-  // Add them to the worldwide Wall of Citizens (with photo), then enter
+  // Send the new account to Elizauria's servers so it appears on every device, then enter
   function enter(){ location.href='home.html'; }
-  var initial=(name.charAt(0)||'★').toUpperCase();
-  addSharedCitizen({ name:name, role:'Citizen', initial:initial, photo:suPhotoData, num:id, date:new Date().toLocaleDateString(), at:Date.now() })
-    .then(enter).catch(enter);
+  addSharedAccount(acc).then(enter).catch(enter);
   setTimeout(enter, 1500); // safety: never block entry on the network
 });
 </script>
