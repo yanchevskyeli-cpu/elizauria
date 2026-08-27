@@ -222,9 +222,11 @@ var STORES=[
     {id:'crown',n:'Royal Crown',e:'👑',p:1000000},{id:'diamond',n:'Diamond',e:'💎',p:500000},{id:'yacht',n:'Mega Yacht',e:'🛥️',p:5000000},
     {id:'jet',n:'Private Jet',e:'✈️',p:20000000}
   ]},
-  {name:'Elizauria Airlines', icon:'✈️', items:[
-    {id:'ticket_cessna',n:'Cessna 172 Ticket',e:'🛩️',p:1500},
-    {id:'ticket_a320',n:'Airbus A320-200 Ticket',e:'🛫',p:8000}
+  {name:'Airlizauria', icon:'✈️', items:[
+    {id:'ticket_cessna',n:'Cessna 172 Ticket',e:'🛩️',p:220},
+    {id:'ticket_a320_eco',n:'Airbus A320-200 · Economy',e:'🛫',p:464},
+    {id:'ticket_a320_biz',n:'Airbus A320-200 · Business',e:'🛫',p:842},
+    {id:'ticket_a320_first',n:'Airbus A320-200 · First Class',e:'🛫',p:1648}
   ]},
   {name:'Elizauria Space Agency', icon:'🚀', items:[
     {id:'telescope',n:'Telescope',e:'🔭',p:2000},{id:'spacesuit',n:'Space Suit',e:'🧑‍🚀',p:80000},{id:'satellite',n:'Satellite',e:'🛰️',p:5000000},
