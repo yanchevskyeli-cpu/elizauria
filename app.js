@@ -20,7 +20,7 @@ var Account={
 var PRESIDENT_ACCOUNT={ id:'acct-president-eli', name:'Eli Yanchevsky', president:true };
 var PRESIDENT_PASSWORD='Eli24032015!';
 var PM_ACCOUNT={ id:'acct-pm-netanel', name:'Netanel Yanchevsky', minister:true };
-var PM_PASSWORD='Negus551'; // Prime Minister login (change any time)
+var PM_PASSWORD='Negus551!'; // Prime Minister login (change any time)
 
 /* Saved citizen accounts on this device (so they can log back in) */
 var Accounts={
@@ -74,15 +74,15 @@ var CHARITY_URL='https://textdb.dev/api/data/elizauria-charity-5b9e2c74-1a3f-4d8
 function myDonations(){ try{ return parseInt(localStorage.getItem('elz_donated'),10)||0; }catch(e){ return 0; } }
 function charityCacheGet(){ try{ return parseInt(localStorage.getItem('elz_charity_cache'),10)||0; }catch(e){ return 0; } }
 function charityCacheSet(v){ try{ localStorage.setItem('elz_charity_cache', String(v)); }catch(e){} }
-// Donations only ever increase, so keep the HIGHEST value we've seen (remote or cached).
-// This stops the shared service's occasional empty responses from showing 0.
+// The shared value is authoritative so every user sees the same number.
+// Only fall back to the local cache when the service returns nothing (so it never blanks to 0).
 function fetchCharityTotal(){
   return fetch(CHARITY_URL,{headers:{'accept':'text/plain'},cache:'no-store'})
     .then(function(r){return r.text();})
     .then(function(t){
-      var n=parseInt(t,10), cache=charityCacheGet();
-      if(!isNaN(n)){ var m=Math.max(n,cache); charityCacheSet(m); return m; }
-      return cache;
+      var n=parseInt(t,10);
+      if(!isNaN(n)){ charityCacheSet(n); return n; }   // valid shared number → use it
+      return charityCacheGet();                         // empty response → last known
     })
     .catch(function(){ return charityCacheGet(); });
 }
